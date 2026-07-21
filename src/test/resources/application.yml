@@ -1,0 +1,13 @@
+# Shared baseline for every test in this project. Each test class layers its own
+# spring.ai.test.vcr.* properties on top via @SpringBootTest(properties = ...), so the
+# VCR-specific configuration each test demonstrates stays visible in that test file
+# rather than hidden here.
+spring:
+  ai:
+    ollama:
+      base-url: http://localhost:11434
+      chat:
+        model: llama3.2:1b
+    test:
+      vcr:
+        enabled: true

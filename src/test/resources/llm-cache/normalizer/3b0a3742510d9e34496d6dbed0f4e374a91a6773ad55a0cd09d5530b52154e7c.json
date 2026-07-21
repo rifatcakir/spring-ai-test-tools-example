@@ -1,0 +1,34 @@
+{
+  "schemaVersion" : "1",
+  "hash" : "3b0a3742510d9e34496d6dbed0f4e374a91a6773ad55a0cd09d5530b52154e7c",
+  "recordedAt" : "2026-07-21T20:24:07.975032100Z",
+  "canonicalRequest" : "vcr-canonical-form/v1\nmodel=llama3.2:1b\ntemperature= null\ntopP= null\ntopK= null\nmaxTokens= null\nfrequencyPenalty= null\npresencePenalty= null\nstop=\nmessage[user]=Today is <VCR:DATE>. Reply with exactly one word: noted\n",
+  "request" : {
+    "model" : "llama3.2:1b",
+    "temperature" : null,
+    "topP" : null,
+    "topK" : null,
+    "maxTokens" : null,
+    "stopSequences" : [ ],
+    "messages" : [ {
+      "type" : "user",
+      "text" : "Today is <VCR:DATE>. Reply with exactly one word: noted"
+    } ],
+    "tools" : [ ]
+  },
+  "response" : {
+    "id" : "",
+    "model" : "llama3.2:1b",
+    "generations" : [ {
+      "text" : "Recognized",
+      "finishReason" : "stop",
+      "toolCalls" : [ ]
+    } ],
+    "usage" : {
+      "promptTokens" : 42,
+      "completionTokens" : 3,
+      "totalTokens" : 45
+    },
+    "metadata" : { }
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "schemaVersion" : "1",
+  "hash" : "556dfddfd6d641f236adf20601290ce9696a916934a43126d78b0433fd4e045f",
+  "recordedAt" : "2026-07-21T20:24:06.241267Z",
+  "canonicalRequest" : "vcr-canonical-form/v1\nmodel=llama3.2:1b\ntemperature= null\ntopP= null\ntopK= null\nmaxTokens= null\nfrequencyPenalty= null\npresencePenalty= null\nstop=\nmessage[user]=Reply with exactly one word: configured\n",
+  "request" : {
+    "model" : "llama3.2:1b",
+    "temperature" : null,
+    "topP" : null,
+    "topK" : null,
+    "maxTokens" : null,
+    "stopSequences" : [ ],
+    "messages" : [ {
+      "type" : "user",
+      "text" : "Reply with exactly one word: configured"
+    } ],
+    "tools" : [ ]
+  },
+  "response" : {
+    "id" : "",
+    "model" : "llama3.2:1b",
+    "generations" : [ {
+      "text" : "No.",
+      "finishReason" : "stop",
+      "toolCalls" : [ ]
+    } ],
+    "usage" : {
+      "promptTokens" : 32,
+      "completionTokens" : 3,
+      "totalTokens" : 35
+    },
+    "metadata" : { }
+  }
+}

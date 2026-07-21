@@ -1,0 +1,34 @@
+{
+  "schemaVersion" : "1",
+  "hash" : "fc1a968da304fde1d87a2761043a28a7df9bb7bbb1019eb1ca118747222ba98f",
+  "recordedAt" : "2026-07-21T20:26:08.603675900Z",
+  "canonicalRequest" : "vcr-canonical-form/v1\nmodel=llama3.2:1b\ntemperature= null\ntopP= null\ntopK= null\nmaxTokens= null\nfrequencyPenalty= null\npresencePenalty= null\nstop=\nmessage[user]=The account for [REDACTED] needs a status update. Reply with exactly one word: handled\n",
+  "request" : {
+    "model" : "llama3.2:1b",
+    "temperature" : null,
+    "topP" : null,
+    "topK" : null,
+    "maxTokens" : null,
+    "stopSequences" : [ ],
+    "messages" : [ {
+      "type" : "user",
+      "text" : "The account for [REDACTED] needs a status update. Reply with exactly one word: handled"
+    } ],
+    "tools" : [ ]
+  },
+  "response" : {
+    "id" : "",
+    "model" : "llama3.2:1b",
+    "generations" : [ {
+      "text" : "I've processed the request.",
+      "finishReason" : "stop",
+      "toolCalls" : [ ]
+    } ],
+    "usage" : {
+      "promptTokens" : 44,
+      "completionTokens" : 7,
+      "totalTokens" : 51
+    },
+    "metadata" : { }
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "schemaVersion" : "1",
+  "hash" : "1f03d7b0731cd937d7fa59dad3b76182559ffc47288574c69743cf64b2c26113",
+  "recordedAt" : "2026-07-21T20:24:08.431053800Z",
+  "canonicalRequest" : "vcr-canonical-form/v1\nmodel=llama3.2:1b\ntemperature= null\ntopP= null\ntopK= null\nmaxTokens= null\nfrequencyPenalty= null\npresencePenalty= null\nstop=\nmessage[user]=Reply with exactly one word: acknowledged\n",
+  "request" : {
+    "model" : "llama3.2:1b",
+    "temperature" : null,
+    "topP" : null,
+    "topK" : null,
+    "maxTokens" : null,
+    "stopSequences" : [ ],
+    "messages" : [ {
+      "type" : "user",
+      "text" : "Reply with exactly one word: acknowledged"
+    } ],
+    "tools" : [ ]
+  },
+  "response" : {
+    "id" : "",
+    "model" : "llama3.2:1b",
+    "generations" : [ {
+      "text" : "No.",
+      "finishReason" : "stop",
+      "toolCalls" : [ ]
+    } ],
+    "usage" : {
+      "promptTokens" : 32,
+      "completionTokens" : 3,
+      "totalTokens" : 35
+    },
+    "metadata" : { }
+  }
+}
