@@ -1,0 +1,18 @@
+target/
+!.mvn/wrapper/maven-wrapper.jar
+
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.settings/
+.classpath
+.project
+
+*.log
+.DS_Store
+
+# Fixtures under src/test/resources/llm-cache are intentionally NOT ignored.
+# They are the whole point of this project: commit them so `mvn test` needs
+# no Docker, no Ollama, and no network at all.

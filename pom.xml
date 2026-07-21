@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.example</groupId>
+    <artifactId>spring-ai-test-vcr-example</artifactId>
+    <version>0.1.0</version>
+    <packaging>jar</packaging>
+
+    <name>spring-ai-test-vcr-example</name>
+    <description>
+        A standalone consumer of io.github.rifatcakir:spring-ai-test-vcr, exercising it purely
+        through its public API and Maven coordinates, exactly as an unrelated third-party
+        project would. See README.md for what each test demonstrates.
+    </description>
+
+    <properties>
+        <java.version>21</java.version>
+        <maven.compiler.release>21</maven.compiler.release>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <!-- Matches the versions spring-ai-test-vcr itself is built against. -->
+        <spring-boot.version>4.0.0</spring-boot.version>
+        <spring-ai.version>2.0.0</spring-ai.version>
+
+        <!-- Overridden to empty by the -Pintegration profile below, same mechanism
+             spring-ai-test-vcr's own pom uses and for the same reason: a profile's
+             plugin-level <configuration> override does not reach a Surefire execution
+             synthesized from the plugin's top-level configuration, but a property
+             substitution does. -->
+        <surefire.excludedGroups>integration</surefire.excludedGroups>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>${spring-boot.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.ai</groupId>
+                <artifactId>spring-ai-bom</artifactId>
+                <version>${spring-ai.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter</artifactId>
+        </dependency>
+
+        <!-- Real Ollama chat model + its auto-configuration; this app talks to a real
+             model, exactly like any other Spring AI application would. -->
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-starter-model-ollama</artifactId>
+        </dependency>
+
+        <!--
+            The library under test. Deliberately an ordinary dependency at a fixed
+            released coordinate, scope=test, exactly what README.md's Quick Start shows,
+            and exactly what this will look like once it is resolved from Maven Central
+            instead of a local `mvn install`. Nothing here changes on that day.
+        -->
+        <dependency>
+            <groupId>io.github.rifatcakir</groupId>
+            <artifactId>spring-ai-test-vcr</artifactId>
+            <version>0.1.0</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <parameters>true</parameters>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <!-- VcrAnnotationEscapeHatchTest needs a real, reachable Ollama every
+                         time it runs (that's its whole point), so it's excluded from the
+                         default build; `mvn test` never requires one. Run with -Pintegration. -->
+                    <excludedGroups>${surefire.excludedGroups}</excludedGroups>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <!--
+            Runs the tests tagged @Tag("integration") - currently only
+            VcrAnnotationEscapeHatchTest, whose whole point is bypassing the cache and
+            reaching a real model. Requires a real Ollama reachable at
+            spring.ai.ollama.base-url (see application.yml). Not part of the default
+            `mvn test` run, so cloning this repo and running `mvn test` needs no Docker,
+            no Ollama, and no network at all.
+        -->
+        <profile>
+            <id>integration</id>
+            <properties>
+                <surefire.excludedGroups></surefire.excludedGroups>
+            </properties>
+        </profile>
+    </profiles>
+
+</project>
