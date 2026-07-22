@@ -1,6 +1,7 @@
 # spring-ai-test-vcr-example
 
-A standalone consumer of [spring-ai-test-vcr](https://github.com/rifatcakir/spring-ai-test-vcr),
+A standalone consumer of [spring-ai-test-vcr](https://github.com/rifatcakir/spring-ai-test-tools)
+(the repository was renamed to `spring-ai-test-tools`, matching its Maven artifactId),
 exercising it purely through its public API and its published Maven coordinates -- exactly
 as an unrelated third-party project would. This exists as spring-ai-test-vcr's final
 pre-publish verification gate: if something in this repo breaks, the library's public API
@@ -20,7 +21,7 @@ spring-ai-test-vcr is not yet published to Maven Central. Until it is, install i
 your local repository first:
 
 ```bash
-cd ../spring-ai-test-vcr   # or wherever you cloned it
+cd ../spring-ai-test-tools   # or wherever you cloned it
 mvn clean install          # not -Prelease -- no signing needed just to consume it locally
 ```
 
@@ -35,7 +36,7 @@ This project's `pom.xml` then depends on it as an ordinary, fixed-version depend
 </dependency>
 ```
 
-(The published Maven artifactId is `spring-ai-test-tools`; the GitHub repo it's built from is still named `spring-ai-test-vcr`.)
+(The published Maven artifactId is `spring-ai-test-tools`; the GitHub repo it's built from was renamed to match, from `spring-ai-test-vcr` to `spring-ai-test-tools`.)
 
 **Nothing here changes once the library is actually published.** The coordinate and
 version stay identical; Maven just starts resolving it from Central instead of your local
