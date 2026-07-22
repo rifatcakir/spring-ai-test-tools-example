@@ -6,6 +6,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.stream.Stream;
 
+import io.github.rifatcakir.springai.testtools.recorder.VcrPromptNormalizer;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.ai.chat.client.ChatClient;
@@ -16,6 +17,8 @@ import org.springframework.ai.evaluation.EvaluationResponse;
 import org.springframework.ai.evaluation.Evaluator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -33,6 +36,27 @@ import static org.assertj.core.api.Assertions.assertThat;
  * {@code docs/VISION.md}, then reproduced here against this project's own committed
  * fixture. No new spring-ai-test-tools code exists for this at all: this test is proof
  * that a capability already works, not a demonstration of a new library feature.
+ *
+ * <p><strong>Why this test needs its own {@link VcrPromptNormalizer} bean, unlike every
+ * other test in this project:</strong> {@code RelevancyEvaluator}'s judge prompt is
+ * rendered by Spring AI's own {@code PromptTemplate} (backed by StringTemplate/ST), and
+ * that rendering embeds the *recording JVM's own* platform line separator -- {@code
+ * \r\n} on Windows, {@code \n} on Linux/macOS -- into the rendered message text. This is
+ * the same category of cross-platform bug spring-ai-test-tools itself already found and
+ * fixed for tool schemas and {@code entity()} format instructions (see its own {@code
+ * docs/STATUS.md} and {@code CURRENT_SCHEMA_VERSION "4"}), but it shows up in a place
+ * that fix doesn't cover: an evaluator's rendered judge prompt arrives at the cache key
+ * generator as ordinary {@code UserMessage} text, indistinguishable from a real user's
+ * own authored prompt -- which spring-ai-test-tools deliberately does *not* normalize by
+ * default, since a real user's prompt could contain a meaningful {@code \r\n} that
+ * should legitimately bust the cache. The fix lives here, in this test's own
+ * configuration, using the extension point spring-ai-test-tools already provides for
+ * exactly this situation ({@link VcrPromptNormalizer}) -- not in the library itself,
+ * since only the caller knows a given message is machine-rendered rather than
+ * user-authored. Confirmed for real: this fixture, recorded on Windows without the
+ * normalizer, missed on this project's own Linux CI with a genuine
+ * {@code VcrCacheMissException} until the normalizer was added and the fixture
+ * re-recorded.
  *
  * <p><strong>Read the fixture before assuming what it says:</strong> despite the
  * response plainly being supported by the context, {@code llama3.2:1b} answered "No."
@@ -79,6 +103,20 @@ class EvaluatorRecordReplayTest {
 		try (Stream<Path> fixtures = Files.list(cacheDirectory)) {
 			assertThat(fixtures).as("exactly one fixture for this one distinct judge call").hasSize(1);
 		}
+	}
+
+	@TestConfiguration
+	static class NormalizerConfig {
+
+		/**
+		 * Collapses the recording JVM's own line separator in
+		 * {@code RelevancyEvaluator}'s rendered judge prompt -- see the class Javadoc.
+		 */
+		@Bean
+		VcrPromptNormalizer normalizeJudgePromptLineEndings() {
+			return text -> text.replace("\r\n", "\n").replace("\r", "\n");
+		}
+
 	}
 
 }

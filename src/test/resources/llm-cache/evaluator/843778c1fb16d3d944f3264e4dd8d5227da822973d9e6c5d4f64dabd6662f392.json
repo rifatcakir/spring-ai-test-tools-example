@@ -1,0 +1,37 @@
+{
+  "schemaVersion" : "4",
+  "hash" : "843778c1fb16d3d944f3264e4dd8d5227da822973d9e6c5d4f64dabd6662f392",
+  "recordedAt" : "2026-07-22T20:47:31.855451700Z",
+  "canonicalRequest" : "vcr-canonical-form/v1\nmodel=llama3.2:1b\ntemperature= null\ntopP= null\ntopK= null\nmaxTokens= null\nfrequencyPenalty= null\npresencePenalty= null\nstop=\nmessage[user]=\tYour task is to evaluate if the response for the query\\n\tis in line with the context information provided.\\n\\n\tYou have two options to answer. Either YES or NO.\\n\\n\tAnswer YES, if the response for the query\\n\tis in line with context information otherwise NO.\\n\\n\tQuery:\\n\tWhat is the capital of France?\\n\\n\tResponse:\\n\tThe capital of France is Paris.\\n\\n\tContext:\\n\tParis is the capital and most populous city of France.\\n\\n\tAnswer:\\n\n",
+  "request" : {
+    "model" : "llama3.2:1b",
+    "temperature" : null,
+    "topP" : null,
+    "topK" : null,
+    "maxTokens" : null,
+    "stopSequences" : [ ],
+    "messages" : [ {
+      "type" : "user",
+      "text" : "\tYour task is to evaluate if the response for the query\n\tis in line with the context information provided.\n\n\tYou have two options to answer. Either YES or NO.\n\n\tAnswer YES, if the response for the query\n\tis in line with context information otherwise NO.\n\n\tQuery:\n\tWhat is the capital of France?\n\n\tResponse:\n\tThe capital of France is Paris.\n\n\tContext:\n\tParis is the capital and most populous city of France.\n\n\tAnswer:\n",
+      "toolCalls" : [ ],
+      "toolResponses" : [ ]
+    } ],
+    "tools" : [ ],
+    "structuredOutput" : null
+  },
+  "response" : {
+    "id" : "",
+    "model" : "llama3.2:1b",
+    "generations" : [ {
+      "text" : "NO.",
+      "finishReason" : "stop",
+      "toolCalls" : [ ]
+    } ],
+    "usage" : {
+      "promptTokens" : 117,
+      "completionTokens" : 3,
+      "totalTokens" : 120
+    },
+    "metadata" : { }
+  }
+}

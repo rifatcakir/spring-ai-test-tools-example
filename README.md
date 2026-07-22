@@ -136,15 +136,22 @@ fixture type exists. The pleasant surprise: Jackson renders a `float[]` as a sin
 compact line rather than one number per line, so the whole fixture is 22 lines, not the
 thousands a naive prediction might expect.
 
-`EvaluatorRecordReplayTest`'s fixture (`src/test/resources/llm-cache/evaluator/`) needed
-several real re-recording attempts, worth knowing about if you touch it: `llama3.2:1b`
-answered `RelevancyEvaluator`'s judge prompt inconsistently across attempts for the exact
-same query/response/context -- "No.", "NO.", and once "YES" -- with temperature left at
+`EvaluatorRecordReplayTest`'s fixture (`src/test/resources/llm-cache/evaluator/`) has two
+things worth knowing if you touch it. First, `llama3.2:1b` answered `RelevancyEvaluator`'s
+judge prompt inconsistently across several real re-recording attempts for the exact same
+query/response/context -- "No.", "NO.", and once "YES" -- with temperature left at
 Ollama's own default (this project doesn't pin it for chat calls). The committed fixture
 records whichever answer came back on the recording that was actually kept ("No."),
 rather than discarding it in favor of a "nicer" one -- the point of this test is that a
 replay is exactly what was recorded, not that the judge's opinion is one a human would
-agree with. See the test's own Javadoc.
+agree with. Second, and more load-bearing: this test's own `@TestConfiguration` registers
+a `VcrPromptNormalizer` that collapses `\r\n`/`\r` to `\n` in message text -- without it,
+this fixture recorded on Windows genuinely missed on this project's own Linux CI, the
+same cross-platform line-ending bug spring-ai-test-tools itself already fixed for tool
+schemas, but showing up here in a place that fix doesn't cover (`RelevancyEvaluator`'s
+own `PromptTemplate`-rendered judge prompt, which looks like ordinary user-message text
+to the cache key generator). See the test's own Javadoc for why the fix lives in this
+project's test code rather than in spring-ai-test-tools itself.
 
 To re-record after a real change (a prompt, a model, spring-ai-test-tools itself), delete
 the relevant fixture file(s) and repeat from step 2.
