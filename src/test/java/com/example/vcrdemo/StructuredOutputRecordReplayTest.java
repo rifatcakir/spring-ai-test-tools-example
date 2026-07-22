@@ -62,7 +62,7 @@ class StructuredOutputRecordReplayTest {
 		// them proves entity() actually parsed the recorded JSON into the DTO, not just
 		// that some non-null object came back.
 		assertThat(first.carrier()).as("the committed fixture's exact recorded carrier").isEqualTo("Turkish Airlines");
-		assertThat(first.estimatedDays()).as("the committed fixture's exact recorded estimate").isEqualTo(7);
+		assertThat(first.estimatedDays()).as("the committed fixture's exact recorded estimate").isEqualTo(9);
 		assertThat(second).as("a replay must convert to the same object a live call already produced")
 			.isEqualTo(first);
 

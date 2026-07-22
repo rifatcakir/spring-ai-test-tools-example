@@ -68,7 +68,7 @@ class ToolCallingRecordReplayTest {
 		// not "whatever the model happens to say" -- asserting the exact text proves a
 		// real replay happened, not just that some non-empty string came back.
 		assertThat(firstResponse).as("the committed second-turn fixture's exact recorded final answer")
-			.isEqualTo("The status of the order is: The order has been shipped and will arrive in 2 days.");
+			.isEqualTo("The status of order ORD-4471 is \"shipped\" and it will arrive in 2 days.");
 		assertThat(secondResponse).as("a replay must return exactly what was recorded").isEqualTo(firstResponse);
 		assertThat(orderStatusTool.invocations)
 			.as("INSIDE_TOOL_LOOP's real point: the real @Tool method runs again on replay, "

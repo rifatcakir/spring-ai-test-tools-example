@@ -1,0 +1,46 @@
+{
+  "schemaVersion" : "4",
+  "hash" : "3a3c5135cf3270a5545e8aa285fc2026c2b852af7abc108b2e6d4e7177ad430d",
+  "recordedAt" : "2026-07-22T11:43:08.889632800Z",
+  "canonicalRequest" : "vcr-canonical-form/v1\nmodel=llama3.2:1b\ntemperature= null\ntopP= null\ntopK= null\nmaxTokens= null\nfrequencyPenalty= null\npresencePenalty= null\nstop=\ntool=getOrderStatus|Get the current shipping status of a customer order by its order id|{\n  \"$schema\" : \"https://json-schema.org/draft/2020-12/schema\",\n  \"type\" : \"object\",\n  \"properties\" : {\n    \"orderId\" : {\n      \"type\" : \"string\"\n    }\n  },\n  \"required\" : [ \"orderId\" ],\n  \"additionalProperties\" : false\n}\nmessage[user]=What is the status of order ORD-4471? Use the tool to find out, do not guess.\n",
+  "request" : {
+    "model" : "llama3.2:1b",
+    "temperature" : null,
+    "topP" : null,
+    "topK" : null,
+    "maxTokens" : null,
+    "stopSequences" : [ ],
+    "messages" : [ {
+      "type" : "user",
+      "text" : "What is the status of order ORD-4471? Use the tool to find out, do not guess.",
+      "toolCalls" : [ ],
+      "toolResponses" : [ ]
+    } ],
+    "tools" : [ {
+      "name" : "getOrderStatus",
+      "description" : "Get the current shipping status of a customer order by its order id",
+      "inputSchema" : "{\n  \"$schema\" : \"https://json-schema.org/draft/2020-12/schema\",\n  \"type\" : \"object\",\n  \"properties\" : {\n    \"orderId\" : {\n      \"type\" : \"string\"\n    }\n  },\n  \"required\" : [ \"orderId\" ],\n  \"additionalProperties\" : false\n}"
+    } ],
+    "structuredOutput" : null
+  },
+  "response" : {
+    "id" : "",
+    "model" : "llama3.2:1b",
+    "generations" : [ {
+      "text" : "",
+      "finishReason" : "stop",
+      "toolCalls" : [ {
+        "id" : "call_6egbctgj",
+        "type" : "function",
+        "name" : "getOrderStatus",
+        "arguments" : "{\"orderId\":\"ORD-4471\"}"
+      } ]
+    } ],
+    "usage" : {
+      "promptTokens" : 172,
+      "completionTokens" : 29,
+      "totalTokens" : 201
+    },
+    "metadata" : { }
+  }
+}

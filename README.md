@@ -97,10 +97,28 @@ Needs Ollama reachable at `http://localhost:11434` with `llama3.2:1b` pulled (se
    hundreds of thousands; a small nudge in the prompt (an explicit range) was enough to get
    a clean answer. This is a small-model prompting quirk, not anything to do with caching
    correctness -- the round trip itself was never in question, only whether the *content*
-   was worth committing to a fixture someone will read in a PR.
+   was worth committing to a fixture someone will read in a PR. The tool-calling fixtures
+   needed several recording attempts for the same reason: `llama3.2:1b` doesn't reliably
+   invoke the tool through Spring AI's structured tool-calling protocol on every attempt --
+   some attempts produced a plain-text string that merely *looked* like a tool call
+   (`toolCalls` empty in the response), and one produced a real tool call with garbled
+   arguments. Re-running the same test (not changing the mechanism under test) until a
+   clean, genuine two-turn exchange came back is the same "read it, don't just trust that
+   `mvn test` was green" discipline, applied to recording quality rather than caching
+   correctness.
 5. Flip the five properties in step 2 back to `REPLAY_ONLY`, then run `mvn test` again
    with Ollama stopped to confirm nothing regressed.
 6. Commit the fixtures.
+
+All fixtures here were re-recorded once already, for a reason worth knowing if you're
+touching a tool or `entity()` schema: `spring-ai-test-tools` versions before schema `"4"`
+hashed a tool's input schema and an `entity()` call's format instructions/JSON schema
+as-is, and Jackson pretty-prints that text using the *recording machine's* own line
+separator (`\r\n` on Windows, `\n` on Linux/macOS) -- so a fixture recorded on Windows
+(as these originally were) failed to replay on this project's own Linux CI. `spring-ai-test-tools`
+now normalizes those line endings before hashing (and in what it stores), so this is now
+purely historical -- but it's why you'll see schema `"4"` throughout
+`src/test/resources/llm-cache/`, not `"3"`.
 
 To re-record after a real change (a prompt, a model, spring-ai-test-tools itself), delete
 the relevant fixture file(s) and repeat from step 2.
