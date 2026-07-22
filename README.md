@@ -1,9 +1,12 @@
-# spring-ai-test-vcr-example
+# spring-ai-test-tools-example
 
-A standalone consumer of [spring-ai-test-vcr](https://github.com/rifatcakir/spring-ai-test-tools)
-(the repository was renamed to `spring-ai-test-tools`, matching its Maven artifactId),
+(This repository was renamed from `spring-ai-test-vcr-example` to match
+`spring-ai-test-tools`, the library it demonstrates -- same rename, same reason.)
+
+A standalone consumer of [spring-ai-test-tools](https://github.com/rifatcakir/spring-ai-test-tools)
+(both its GitHub repo and Maven artifactId were renamed from `spring-ai-test-vcr` to match),
 exercising it purely through its public API and its published Maven coordinates -- exactly
-as an unrelated third-party project would. This exists as spring-ai-test-vcr's final
+as an unrelated third-party project would. This exists as spring-ai-test-tools's final
 pre-publish verification gate: if something in this repo breaks, the library's public API
 surface broke for a real consumer, not just for its own internal test suite.
 
@@ -17,7 +20,7 @@ see for yourself. One test is the deliberate exception: see
 
 ## Setup
 
-spring-ai-test-vcr is not yet published to Maven Central. Until it is, install it into
+spring-ai-test-tools is not yet published to Maven Central. Until it is, install it into
 your local repository first:
 
 ```bash
@@ -77,7 +80,7 @@ Needs Ollama reachable at `http://localhost:11434` with `llama3.2:1b` pulled (se
    `src/test/resources/llm-cache/<test-name>/`. `ToolCallingRecordReplayTest` writes
    *two* fixtures for its one tool call -- `VcrScope.INSIDE_TOOL_LOOP` caches one per
    model turn, not one for the whole round trip.
-4. **Read the generated JSON before committing it** -- exactly as spring-ai-test-vcr's own
+4. **Read the generated JSON before committing it** -- exactly as spring-ai-test-tools's own
    `CLAUDE.md` insists on for its own fixtures. This is where a redaction bug was actually
    caught while building this project: the first attempt redacted `request.messages()`
    but forgot that `canonicalRequest` is a *separate* field that also embeds the raw
@@ -99,12 +102,12 @@ Needs Ollama reachable at `http://localhost:11434` with `llama3.2:1b` pulled (se
    with Ollama stopped to confirm nothing regressed.
 6. Commit the fixtures.
 
-To re-record after a real change (a prompt, a model, spring-ai-test-vcr itself), delete
+To re-record after a real change (a prompt, a model, spring-ai-test-tools itself), delete
 the relevant fixture file(s) and repeat from step 2.
 
 ## Requirements
 
-Java 21 · Spring Boot 4.0+ · Spring AI 2.0+ -- matching spring-ai-test-vcr itself.
+Java 21 · Spring Boot 4.0+ · Spring AI 2.0+ -- matching spring-ai-test-tools itself.
 
 ## Licence
 
