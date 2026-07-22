@@ -53,6 +53,7 @@ version stay identical; Maven just starts resolving it from Central instead of y
 | [`FixtureRedactorSecretsTest`](src/test/java/com/example/vcrdemo/FixtureRedactorSecretsTest.java) | A `VcrFixtureRedactor` bean keeping a customer id out of the committed fixture -- read the JSON in `llm-cache/redactor/` yourself -- while two different customer ids still produce two separate fixtures, proving redaction can never cause a cache collision. |
 | [`AutoConfigPropertiesYamlTest`](src/test/java/com/example/vcrdemo/AutoConfigPropertiesYamlTest.java) | The "quick start" story: zero `@Bean`, zero manual advisor wiring, just `spring.ai.test.vcr.*` properties. Contrast with the two tests above, which each need one extra bean on top of this baseline. |
 | [`ToolCallingRecordReplayTest`](src/test/java/com/example/vcrdemo/ToolCallingRecordReplayTest.java) | How to test a real `@Tool` method deterministically. `VcrScope.INSIDE_TOOL_LOOP` caches one fixture per model turn, so a two-turn tool-calling conversation (the model asks to call the tool, the real tool runs, its result goes back, the model answers) records two fixtures, not one -- and the real `@Tool` method keeps running on every replay, not just on the first live call. |
+| [`StructuredOutputRecordReplayTest`](src/test/java/com/example/vcrdemo/StructuredOutputRecordReplayTest.java) | How to test a `ChatClient...call().entity(Class)` structured-output call deterministically. POJO conversion happens client-side after the (possibly replayed) response comes back, so a replay converts to the same object a live call already produced. Uses `spec.useProviderStructuredOutput()` -- Ollama's native, JSON-schema-constrained decoding -- which this project's small model follows far more reliably than the default text-instruction-based converter. |
 
 ## Running the excluded integration test
 
@@ -67,10 +68,11 @@ Needs Ollama reachable at `http://localhost:11434` with `llama3.2:1b` pulled (se
 
 1. Start a real Ollama with `llama3.2:1b` available locally.
 2. Temporarily set the mode property in `ReplayOnlySealedCiTest.AKnownPromptStillReplays`,
-   `PromptNormalizerVolatileValuesTest`, `FixtureRedactorSecretsTest`, and
-   `ToolCallingRecordReplayTest` from `REPLAY_ONLY` to `RECORD_OR_REPLAY`
-   (`RecordReplayBasicsTest` and `AutoConfigPropertiesYamlTest` already use
-   `RECORD_OR_REPLAY` permanently -- no change needed for those).
+   `PromptNormalizerVolatileValuesTest`, `FixtureRedactorSecretsTest`,
+   `ToolCallingRecordReplayTest`, and `StructuredOutputRecordReplayTest` from
+   `REPLAY_ONLY` to `RECORD_OR_REPLAY` (`RecordReplayBasicsTest` and
+   `AutoConfigPropertiesYamlTest` already use `RECORD_OR_REPLAY` permanently -- no
+   change needed for those).
 3. Run `mvn test` once. Every fixture gets written under
    `src/test/resources/llm-cache/<test-name>/`. `ToolCallingRecordReplayTest` writes
    *two* fixtures for its one tool call -- `VcrScope.INSIDE_TOOL_LOOP` caches one per
@@ -83,8 +85,17 @@ Needs Ollama reachable at `http://localhost:11434` with `llama3.2:1b` pulled (se
    not just trusting the assertions, is what caught that. For the tool-calling fixtures
    specifically, check that the tool call's function name and arguments are exactly what
    you expect (`getOrderStatus` / `{"orderId":"ORD-4471"}`) and that the tool's response
-   made it into the second turn's fixture.
-5. Flip the four properties in step 2 back to `REPLAY_ONLY`, then run `mvn test` again
+   made it into the second turn's fixture. For the structured-output fixture, check that
+   `request.structuredOutput` actually carries the JSON schema (confirms the cache key is
+   sensitive to the target type, not just the prompt text) and that the recorded answer is
+   sensible -- `llama3.2:1b` is small enough that the first couple of recording attempts
+   here produced a response that just echoed the JSON schema back instead of filling in
+   values, and a later one produced a technically-valid but silly `estimatedDays` in the
+   hundreds of thousands; a small nudge in the prompt (an explicit range) was enough to get
+   a clean answer. This is a small-model prompting quirk, not anything to do with caching
+   correctness -- the round trip itself was never in question, only whether the *content*
+   was worth committing to a fixture someone will read in a PR.
+5. Flip the five properties in step 2 back to `REPLAY_ONLY`, then run `mvn test` again
    with Ollama stopped to confirm nothing regressed.
 6. Commit the fixtures.
 

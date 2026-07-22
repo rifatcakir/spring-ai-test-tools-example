@@ -1,0 +1,40 @@
+{
+  "schemaVersion" : "3",
+  "hash" : "8cb40394085846fa1526b58e553201fb8d2476d5d75c27e876124bf90a68a3d1",
+  "recordedAt" : "2026-07-22T09:43:03.985458100Z",
+  "canonicalRequest" : "vcr-canonical-form/v1\nmodel=llama3.2:1b\ntemperature= null\ntopP= null\ntopK= null\nmaxTokens= null\nfrequencyPenalty= null\npresencePenalty= null\nstop=\noutputFormat=Your response should be in JSON format.\\nDo not include any explanations, only provide a RFC8259 compliant JSON response following this format without deviation.\\nDo not include markdown code blocks in your response.\\nRemove the ```json markdown from the output.\\nHere is the JSON Schema instance your output must adhere to:\\n```{\\r\\n  \"$schema\" : \"https://json-schema.org/draft/2020-12/schema\",\\r\\n  \"type\" : \"object\",\\r\\n  \"properties\" : {\\r\\n    \"carrier\" : {\\r\\n      \"type\" : \"string\"\\r\\n    },\\r\\n    \"estimatedDays\" : {\\r\\n      \"type\" : \"integer\",\\r\\n      \"format\" : \"int32\"\\r\\n    }\\r\\n  },\\r\\n  \"required\" : [ \"carrier\", \"estimatedDays\" ],\\r\\n  \"additionalProperties\" : false\\r\\n}```\\n\nstructuredOutputSchema={\\r\\n  \"$schema\" : \"https://json-schema.org/draft/2020-12/schema\",\\r\\n  \"type\" : \"object\",\\r\\n  \"properties\" : {\\r\\n    \"carrier\" : {\\r\\n      \"type\" : \"string\"\\r\\n    },\\r\\n    \"estimatedDays\" : {\\r\\n      \"type\" : \"integer\",\\r\\n      \"format\" : \"int32\"\\r\\n    }\\r\\n  },\\r\\n  \"required\" : [ \"carrier\", \"estimatedDays\" ],\\r\\n  \"additionalProperties\" : false\\r\\n}\nmessage[user]=Invent a fictional shipping estimate for a package from Istanbul to Berlin. The estimated number of days must be a small whole number between 1 and 14.\n",
+  "request" : {
+    "model" : "llama3.2:1b",
+    "temperature" : null,
+    "topP" : null,
+    "topK" : null,
+    "maxTokens" : null,
+    "stopSequences" : [ ],
+    "messages" : [ {
+      "type" : "user",
+      "text" : "Invent a fictional shipping estimate for a package from Istanbul to Berlin. The estimated number of days must be a small whole number between 1 and 14.",
+      "toolCalls" : [ ],
+      "toolResponses" : [ ]
+    } ],
+    "tools" : [ ],
+    "structuredOutput" : {
+      "format" : "Your response should be in JSON format.\nDo not include any explanations, only provide a RFC8259 compliant JSON response following this format without deviation.\nDo not include markdown code blocks in your response.\nRemove the ```json markdown from the output.\nHere is the JSON Schema instance your output must adhere to:\n```{\r\n  \"$schema\" : \"https://json-schema.org/draft/2020-12/schema\",\r\n  \"type\" : \"object\",\r\n  \"properties\" : {\r\n    \"carrier\" : {\r\n      \"type\" : \"string\"\r\n    },\r\n    \"estimatedDays\" : {\r\n      \"type\" : \"integer\",\r\n      \"format\" : \"int32\"\r\n    }\r\n  },\r\n  \"required\" : [ \"carrier\", \"estimatedDays\" ],\r\n  \"additionalProperties\" : false\r\n}```\n",
+      "jsonSchema" : "{\r\n  \"$schema\" : \"https://json-schema.org/draft/2020-12/schema\",\r\n  \"type\" : \"object\",\r\n  \"properties\" : {\r\n    \"carrier\" : {\r\n      \"type\" : \"string\"\r\n    },\r\n    \"estimatedDays\" : {\r\n      \"type\" : \"integer\",\r\n      \"format\" : \"int32\"\r\n    }\r\n  },\r\n  \"required\" : [ \"carrier\", \"estimatedDays\" ],\r\n  \"additionalProperties\" : false\r\n}"
+    }
+  },
+  "response" : {
+    "id" : "",
+    "model" : "llama3.2:1b",
+    "generations" : [ {
+      "text" : "{\n    \"carrier\": \"Turkish Airlines\",\n    \"estimatedDays\": 7\n}",
+      "finishReason" : "stop",
+      "toolCalls" : [ ]
+    } ],
+    "usage" : {
+      "promptTokens" : 57,
+      "completionTokens" : 20,
+      "totalTokens" : 77
+    },
+    "metadata" : { }
+  }
+}

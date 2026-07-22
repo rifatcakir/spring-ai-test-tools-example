@@ -98,7 +98,7 @@ class FixtureRedactorSecretsTest {
 										message.text().replaceAll("customer-\\d+", "[REDACTED]"),
 										message.toolCalls(), message.toolResponses()))
 								.toList(),
-							track.request().tools()),
+							track.request().tools(), track.request().structuredOutput()),
 					track.response());
 		}
 
