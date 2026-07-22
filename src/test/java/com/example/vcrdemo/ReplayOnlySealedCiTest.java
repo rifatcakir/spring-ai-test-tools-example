@@ -39,7 +39,11 @@ class ReplayOnlySealedCiTest {
 
 			String response = chatClient.prompt().user("Reply with exactly one word: sealed").call().content();
 
-			assertThat(response).isNotBlank();
+			// REPLAY_ONLY against a committed fixture: the response is not "whatever the
+			// model happens to say" -- it's a fixed, known value on disk. Asserting the
+			// exact recorded text (this small model didn't actually comply with the
+			// one-word instruction) proves this really replayed the committed fixture.
+			assertThat(response).as("the committed fixture's exact recorded response").isEqualTo("No.");
 		}
 
 	}
@@ -66,7 +70,13 @@ class ReplayOnlySealedCiTest {
 				.user("This exact sentence has deliberately never been recorded as a fixture.")
 				.call()
 				.content())
-				.satisfies(ex -> assertThat(ex.getMessage()).contains("REPLAY_ONLY"));
+				.satisfies(ex -> {
+					assertThat(ex.getMessage()).contains("REPLAY_ONLY");
+					assertThat(ex.getHash()).as("a real 64-character SHA-256, not a placeholder").hasSize(64);
+					assertThat(ex.getCanonicalRequest())
+						.as("the exception must show the exact request that missed, for a human to re-record")
+						.contains("This exact sentence has deliberately never been recorded as a fixture.");
+				});
 		}
 
 	}

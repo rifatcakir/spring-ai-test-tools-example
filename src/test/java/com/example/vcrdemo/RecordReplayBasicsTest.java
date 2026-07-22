@@ -44,7 +44,12 @@ class RecordReplayBasicsTest {
 		String firstResponse = chatClient.prompt().user(prompt).call().content();
 		String secondResponse = chatClient.prompt().user(prompt).call().content();
 
-		assertThat(firstResponse).isNotBlank();
+		// This fixture is already committed, so both calls above replay it -- "firstResponse"
+		// is not a live answer either. The committed model reply is the literal text "No."
+		// (the model didn't actually comply with the one-word instruction when this was
+		// first recorded) -- asserting that exact value, not just "non-blank", proves this
+		// really is a replay of the known fixture rather than some other text.
+		assertThat(firstResponse).as("the committed fixture's exact recorded response").isEqualTo("No.");
 		assertThat(secondResponse).as("a replay must return exactly what was recorded, not a fresh answer")
 			.isEqualTo(firstResponse);
 

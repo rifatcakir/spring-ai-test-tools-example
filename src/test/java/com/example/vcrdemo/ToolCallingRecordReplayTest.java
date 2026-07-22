@@ -1,9 +1,12 @@
 package com.example.vcrdemo;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
@@ -61,7 +64,11 @@ class ToolCallingRecordReplayTest {
 		String firstResponse = chatClient.prompt().user(prompt).tools(orderStatusTool).call().content();
 		String secondResponse = chatClient.prompt().user(prompt).tools(orderStatusTool).call().content();
 
-		assertThat(firstResponse).isNotBlank();
+		// REPLAY_ONLY against committed fixtures: this is a known, fixed final answer,
+		// not "whatever the model happens to say" -- asserting the exact text proves a
+		// real replay happened, not just that some non-empty string came back.
+		assertThat(firstResponse).as("the committed second-turn fixture's exact recorded final answer")
+			.isEqualTo("The status of the order is: The order has been shipped and will arrive in 2 days.");
 		assertThat(secondResponse).as("a replay must return exactly what was recorded").isEqualTo(firstResponse);
 		assertThat(orderStatusTool.invocations)
 			.as("INSIDE_TOOL_LOOP's real point: the real @Tool method runs again on replay, "
@@ -69,8 +76,28 @@ class ToolCallingRecordReplayTest {
 			.hasValue(2);
 
 		Path cacheDirectory = Path.of("src/test/resources/llm-cache/tool-calling");
+		String combinedFixtureContent;
 		try (Stream<Path> fixtures = Files.list(cacheDirectory)) {
-			assertThat(fixtures).as("one fixture per model turn -- two turns for one tool call").hasSize(2);
+			List<Path> written = fixtures.toList();
+			assertThat(written).as("one fixture per model turn -- two turns for one tool call").hasSize(2);
+			combinedFixtureContent = written.stream().map(ToolCallingRecordReplayTest::readQuietly)
+				.collect(Collectors.joining("\n"));
+		}
+		// Not just "a tool call happened somewhere" -- the exact function name and
+		// argument the model committed to calling, across the two fixture files.
+		assertThat(combinedFixtureContent)
+			.as("the recorded tool call must be getOrderStatus with the order id from the prompt, not just any call")
+			.contains("\"name\" : \"getOrderStatus\"")
+			.contains("orderId")
+			.contains("ORD-4471");
+	}
+
+	private static String readQuietly(Path path) {
+		try {
+			return Files.readString(path);
+		}
+		catch (IOException ex) {
+			throw new UncheckedIOException(ex);
 		}
 	}
 

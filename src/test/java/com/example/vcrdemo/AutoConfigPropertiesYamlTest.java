@@ -38,7 +38,13 @@ class AutoConfigPropertiesYamlTest {
 		String firstResponse = chatClient.prompt().user(prompt).call().content();
 		String secondResponse = chatClient.prompt().user(prompt).call().content();
 
-		assertThat(secondResponse).isEqualTo(firstResponse);
+		// This fixture is already committed, so both calls above replay it -- the exact
+		// recorded text ("No.", since this small model didn't actually comply with the
+		// one-word instruction when it was first recorded) is known, not just "some
+		// non-empty string". Asserting it directly, rather than only comparing the two
+		// calls to each other, rules out both calls trivially agreeing on an empty string.
+		assertThat(firstResponse).as("the committed fixture's exact recorded response").isEqualTo("No.");
+		assertThat(secondResponse).as("a replay must return exactly what was recorded").isEqualTo(firstResponse);
 	}
 
 }

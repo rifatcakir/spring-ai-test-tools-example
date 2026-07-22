@@ -46,7 +46,12 @@ class PromptNormalizerVolatileValuesTest {
 			.call()
 			.content();
 
-		assertThat(responseForOneDate).isNotBlank();
+		// REPLAY_ONLY against a committed fixture means this response is not "whatever
+		// the model happened to say" -- it's a known, fixed value on disk. Asserting the
+		// literal text proves a real replay happened, not just that some non-empty
+		// string came back.
+		assertThat(responseForOneDate).as("the committed fixture's exact recorded response")
+			.isEqualTo("Recognized");
 		assertThat(responseForADifferentDate)
 			.as("both dates normalize to the same placeholder, so both must hit the same fixture")
 			.isEqualTo(responseForOneDate);

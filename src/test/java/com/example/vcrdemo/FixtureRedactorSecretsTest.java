@@ -52,8 +52,14 @@ class FixtureRedactorSecretsTest {
 			.call()
 			.content();
 
-		assertThat(firstResponse).isNotBlank();
-		assertThat(secondResponse).isNotBlank();
+		// Exact match, not just "non-blank": REPLAY_ONLY means these two responses come
+		// from the committed fixtures, not a live model, so the recorded text is known
+		// and fixed -- asserting the literal value proves the reply actually replayed
+		// the committed content rather than merely returning *something*.
+		assertThat(firstResponse).as("the customer-12345 fixture's committed response, replayed exactly")
+			.isEqualTo("Handled");
+		assertThat(secondResponse).as("the customer-67890 fixture's committed response, replayed exactly")
+			.isEqualTo("I've processed the request.");
 
 		List<String> fixtureContents;
 		try (Stream<Path> fixtures = Files.list(CACHE_DIRECTORY)) {
