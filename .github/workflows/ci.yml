@@ -1,0 +1,71 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Unit tests (JDK 21)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout this example project
+        uses: actions/checkout@v4
+
+      # spring-ai-test-tools is not yet published to Maven Central (see its own
+      # docs/PUBLISHING.md) -- this project's pom.xml depends on it as an ordinary,
+      # fixed-version coordinate, exactly as it will look once published. Until then, CI
+      # has to build and install it locally first -- the same "cd
+      # ../spring-ai-test-tools && mvn clean install" step this project's own README
+      # asks a human to run before the first `mvn test`. Checked out into a
+      # subdirectory (not a sibling path) so this relies on actions/checkout's
+      # documented behavior rather than an assumption about paths outside
+      # $GITHUB_WORKSPACE; the drift-check step below explicitly excludes this
+      # directory from its git-status scan for exactly that reason.
+      - name: Checkout spring-ai-test-tools (upstream library, not yet on Maven Central)
+        uses: actions/checkout@v4
+        with:
+          repository: rifatcakir/spring-ai-test-tools
+          path: spring-ai-test-tools
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
+      # -DskipTests: this job's job is to prove spring-ai-test-tools-example works, not
+      # to re-verify spring-ai-test-tools -- that library has its own CI running its own
+      # 61 tests on its own pushes. Installing the jar is all this step needs to do.
+      - name: Install spring-ai-test-tools 0.1.0 into the local Maven repository
+        run: mvn --batch-mode --no-transfer-progress clean install -DskipTests
+        working-directory: spring-ai-test-tools
+
+      # No -P flag, no Docker: the one integration-tagged test
+      # (VcrAnnotationEscapeHatchTest) is excluded via Surefire's excludedGroups (see
+      # pom.xml), so this needs no Ollama reachable -- the whole point of this
+      # project's committed fixtures.
+      - name: mvn test
+        run: mvn --batch-mode --no-transfer-progress test
+
+      # The gate this job exists for, and more load-bearing here than in the upstream
+      # library's own CI: this project's fixtures are real and committed (unlike the
+      # library, which commits none of its own). ':!spring-ai-test-tools' excludes the
+      # sibling checkout above, which is an untracked nested working copy from this
+      # repo's point of view and would otherwise always show up as "dirty".
+      - name: Fail if the test run left this project's own working tree dirty
+        run: |
+          git status --porcelain -- . ':!spring-ai-test-tools'
+          if [ -n "$(git status --porcelain -- . ':!spring-ai-test-tools')" ]; then
+            echo "::error::mvn test modified this project's own working tree. If a fixture changed, REPLAY_ONLY was not actually in effect somewhere, or a test re-recorded on a miss instead of failing loudly. Review the diff below, and if the change is legitimate, commit it deliberately rather than letting CI carry it forward silently."
+            git diff -- . ':!spring-ai-test-tools'
+            exit 1
+          fi
