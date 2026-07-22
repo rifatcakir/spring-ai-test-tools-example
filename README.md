@@ -59,6 +59,7 @@ version stay identical; Maven just starts resolving it from Central instead of y
 | [`StructuredOutputRecordReplayTest`](src/test/java/com/example/vcrdemo/StructuredOutputRecordReplayTest.java) | How to test a `ChatClient...call().entity(Class)` structured-output call deterministically. POJO conversion happens client-side after the (possibly replayed) response comes back, so a replay converts to the same object a live call already produced. Uses `spec.useProviderStructuredOutput()` -- Ollama's native, JSON-schema-constrained decoding -- which this project's small model follows far more reliably than the default text-instruction-based converter. |
 | [`AssertionsShowcaseTest`](src/test/java/com/example/vcrdemo/AssertionsShowcaseTest.java) | spring-ai-test-tools's Assertions layer (`VcrAssertions.assertThat(...)`), used against the tool-calling and structured-output fixtures above -- read straight off disk via the library's own public `VcrTrackStore`/`VcrTrackMapper`, no new recording. Reads the tool-calling fixture's *first turn* specifically, because that turn's response is the model's still-pending tool call, before Spring AI's built-in tool loop resolves it -- see the test's own Javadoc, and `hasToolCall`'s Javadoc in the library, for why a normal `ChatClient.tools(...).call()`'s *final* response can't be asserted on the same way. |
 | [`EmbeddingRecordReplayTest`](src/test/java/com/example/vcrdemo/EmbeddingRecordReplayTest.java) | Record/replay for `EmbeddingModel` (R4) -- the same story `RecordReplayBasicsTest` tells for chat, applied to `embed(String)` instead. `EmbeddingModel` has no advisor chain, so interception is a `BeanPostProcessor` wrapping the autoconfigured `OllamaEmbeddingModel` bean directly, gated by its own `spring.ai.test.vcr.embedding.enabled` flag -- invisible from this test's own code, which just autowires `EmbeddingModel` like any other consumer would. Asserts the replayed vector is *exactly* (not "same length") the recorded one -- `llama3.2:1b`'s real 2048-dimension output, confirmed by a real call, not a dedicated embedding model. |
+| [`EvaluatorRecordReplayTest`](src/test/java/com/example/vcrdemo/EvaluatorRecordReplayTest.java) | Spring AI's own `Evaluator` mechanism (`RelevancyEvaluator`) becomes deterministic for free -- not a spring-ai-test-tools feature, a usage pattern this library's design already supported. `RelevancyEvaluator` is built from the same `ChatClient.Builder` already customized elsewhere in this project; its internal judge call records and replays exactly like any other `ChatClient` call, with no new code. Read the test's own Javadoc for an honest note on what the small model actually judged. |
 
 ## Running the excluded integration test
 
@@ -134,6 +135,16 @@ can never be replayed back into a usable vector, which defeats the entire reason
 fixture type exists. The pleasant surprise: Jackson renders a `float[]` as a single
 compact line rather than one number per line, so the whole fixture is 22 lines, not the
 thousands a naive prediction might expect.
+
+`EvaluatorRecordReplayTest`'s fixture (`src/test/resources/llm-cache/evaluator/`) needed
+several real re-recording attempts, worth knowing about if you touch it: `llama3.2:1b`
+answered `RelevancyEvaluator`'s judge prompt inconsistently across attempts for the exact
+same query/response/context -- "No.", "NO.", and once "YES" -- with temperature left at
+Ollama's own default (this project doesn't pin it for chat calls). The committed fixture
+records whichever answer came back on the recording that was actually kept ("No."),
+rather than discarding it in favor of a "nicer" one -- the point of this test is that a
+replay is exactly what was recorded, not that the judge's opinion is one a human would
+agree with. See the test's own Javadoc.
 
 To re-record after a real change (a prompt, a model, spring-ai-test-tools itself), delete
 the relevant fixture file(s) and repeat from step 2.
