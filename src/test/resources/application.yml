@@ -8,6 +8,13 @@ spring:
       base-url: http://localhost:11434
       chat:
         model: llama3.2:1b
+      # llama3.2:1b again, not a dedicated embedding model -- the only model already
+      # available in this environment, confirmed (via a real Ollama /api/embed call,
+      # not assumed) to answer embedding requests too. See EmbeddingRecordReplayTest.
+      embedding:
+        model: llama3.2:1b
     test:
       vcr:
         enabled: true
+        embedding:
+          enabled: true

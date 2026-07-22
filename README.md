@@ -58,6 +58,7 @@ version stay identical; Maven just starts resolving it from Central instead of y
 | [`ToolCallingRecordReplayTest`](src/test/java/com/example/vcrdemo/ToolCallingRecordReplayTest.java) | How to test a real `@Tool` method deterministically. `VcrScope.INSIDE_TOOL_LOOP` caches one fixture per model turn, so a two-turn tool-calling conversation (the model asks to call the tool, the real tool runs, its result goes back, the model answers) records two fixtures, not one -- and the real `@Tool` method keeps running on every replay, not just on the first live call. |
 | [`StructuredOutputRecordReplayTest`](src/test/java/com/example/vcrdemo/StructuredOutputRecordReplayTest.java) | How to test a `ChatClient...call().entity(Class)` structured-output call deterministically. POJO conversion happens client-side after the (possibly replayed) response comes back, so a replay converts to the same object a live call already produced. Uses `spec.useProviderStructuredOutput()` -- Ollama's native, JSON-schema-constrained decoding -- which this project's small model follows far more reliably than the default text-instruction-based converter. |
 | [`AssertionsShowcaseTest`](src/test/java/com/example/vcrdemo/AssertionsShowcaseTest.java) | spring-ai-test-tools's Assertions layer (`VcrAssertions.assertThat(...)`), used against the tool-calling and structured-output fixtures above -- read straight off disk via the library's own public `VcrTrackStore`/`VcrTrackMapper`, no new recording. Reads the tool-calling fixture's *first turn* specifically, because that turn's response is the model's still-pending tool call, before Spring AI's built-in tool loop resolves it -- see the test's own Javadoc, and `hasToolCall`'s Javadoc in the library, for why a normal `ChatClient.tools(...).call()`'s *final* response can't be asserted on the same way. |
+| [`EmbeddingRecordReplayTest`](src/test/java/com/example/vcrdemo/EmbeddingRecordReplayTest.java) | Record/replay for `EmbeddingModel` (R4) -- the same story `RecordReplayBasicsTest` tells for chat, applied to `embed(String)` instead. `EmbeddingModel` has no advisor chain, so interception is a `BeanPostProcessor` wrapping the autoconfigured `OllamaEmbeddingModel` bean directly, gated by its own `spring.ai.test.vcr.embedding.enabled` flag -- invisible from this test's own code, which just autowires `EmbeddingModel` like any other consumer would. Asserts the replayed vector is *exactly* (not "same length") the recorded one -- `llama3.2:1b`'s real 2048-dimension output, confirmed by a real call, not a dedicated embedding model. |
 
 ## Running the excluded integration test
 
@@ -120,6 +121,19 @@ separator (`\r\n` on Windows, `\n` on Linux/macOS) -- so a fixture recorded on W
 now normalizes those line endings before hashing (and in what it stores), so this is now
 purely historical -- but it's why you'll see schema `"4"` throughout
 `src/test/resources/llm-cache/`, not `"3"`.
+
+`EmbeddingRecordReplayTest`'s fixture (`src/test/resources/llm-cache-embedding/`) was
+produced the same way, but through a separate property (`spring.ai.test.vcr.embedding.mode`,
+not the top-level `spring.ai.test.vcr.mode` the steps above flip) since `EmbeddingModel`
+interception is gated independently -- see spring-ai-test-tools's own
+`docs/R4-EMBEDDING-INTERCEPTION.md`. Worth knowing if you read this one fixture in a PR:
+it is the only fixture in this whole project that is not meaningfully human-reviewable --
+its `response.embeddings[].vector` field is `llama3.2:1b`'s real 2048-number output.
+Storing the full vector (not a hash of it) is required, not a stylistic choice: a hash
+can never be replayed back into a usable vector, which defeats the entire reason this
+fixture type exists. The pleasant surprise: Jackson renders a `float[]` as a single
+compact line rather than one number per line, so the whole fixture is 22 lines, not the
+thousands a naive prediction might expect.
 
 To re-record after a real change (a prompt, a model, spring-ai-test-tools itself), delete
 the relevant fixture file(s) and repeat from step 2.
