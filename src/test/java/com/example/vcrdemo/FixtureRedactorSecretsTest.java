@@ -7,8 +7,8 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.stream.Stream;
 
-import io.github.rifatcakir.springai.vcr.VcrFixtureRedactor;
-import io.github.rifatcakir.springai.vcr.track.VcrTrack;
+import io.github.rifatcakir.springai.testtools.recorder.VcrFixtureRedactor;
+import io.github.rifatcakir.springai.testtools.recorder.track.VcrTrack;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.ai.chat.client.ChatClient;

@@ -1,6 +1,6 @@
 package com.example.vcrdemo;
 
-import io.github.rifatcakir.springai.vcr.VcrCacheMissException;
+import io.github.rifatcakir.springai.testtools.recorder.VcrCacheMissException;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 

@@ -1,7 +1,7 @@
 package com.example.vcrdemo;
 
-import io.github.rifatcakir.springai.vcr.VcrMode;
-import io.github.rifatcakir.springai.vcr.junit.Vcr;
+import io.github.rifatcakir.springai.testtools.recorder.VcrMode;
+import io.github.rifatcakir.springai.testtools.recorder.junit.Vcr;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 

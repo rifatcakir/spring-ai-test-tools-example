@@ -29,11 +29,13 @@ This project's `pom.xml` then depends on it as an ordinary, fixed-version depend
 ```xml
 <dependency>
     <groupId>io.github.rifatcakir</groupId>
-    <artifactId>spring-ai-test-vcr</artifactId>
+    <artifactId>spring-ai-test-tools</artifactId>
     <version>0.1.0</version>
     <scope>test</scope>
 </dependency>
 ```
+
+(The published Maven artifactId is `spring-ai-test-tools`; the GitHub repo it's built from is still named `spring-ai-test-vcr`.)
 
 **Nothing here changes once the library is actually published.** The coordinate and
 version stay identical; Maven just starts resolving it from Central instead of your local

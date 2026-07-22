@@ -1,7 +1,7 @@
 package com.example.vcrdemo;
 
-import io.github.rifatcakir.springai.vcr.RegexPromptNormalizer;
-import io.github.rifatcakir.springai.vcr.VcrPromptNormalizer;
+import io.github.rifatcakir.springai.testtools.recorder.RegexPromptNormalizer;
+import io.github.rifatcakir.springai.testtools.recorder.VcrPromptNormalizer;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.ai.chat.client.ChatClient;

@@ -12,9 +12,10 @@
 
     <name>spring-ai-test-vcr-example</name>
     <description>
-        A standalone consumer of io.github.rifatcakir:spring-ai-test-vcr, exercising it purely
-        through its public API and Maven coordinates, exactly as an unrelated third-party
-        project would. See README.md for what each test demonstrates.
+        A standalone consumer of io.github.rifatcakir:spring-ai-test-tools (the spring-ai-test-vcr
+        GitHub repo's published artifact), exercising it purely through its public API and Maven
+        coordinates, exactly as an unrelated third-party project would. See README.md for what
+        each test demonstrates.
     </description>
 
     <properties>
@@ -74,7 +75,7 @@
         -->
         <dependency>
             <groupId>io.github.rifatcakir</groupId>
-            <artifactId>spring-ai-test-vcr</artifactId>
+            <artifactId>spring-ai-test-tools</artifactId>
             <version>0.1.0</version>
             <scope>test</scope>
         </dependency>
