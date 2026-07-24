@@ -60,6 +60,7 @@ version stay identical; Maven just starts resolving it from Central instead of y
 | [`AssertionsShowcaseTest`](src/test/java/com/example/vcrdemo/AssertionsShowcaseTest.java) | spring-ai-test-tools's Assertions layer (`VcrAssertions.assertThat(...)`), used against the tool-calling and structured-output fixtures above -- read straight off disk via the library's own public `VcrTrackStore`/`VcrTrackMapper`, no new recording. Reads the tool-calling fixture's *first turn* specifically, because that turn's response is the model's still-pending tool call, before Spring AI's built-in tool loop resolves it -- see the test's own Javadoc, and `hasToolCall`'s Javadoc in the library, for why a normal `ChatClient.tools(...).call()`'s *final* response can't be asserted on the same way. |
 | [`EmbeddingRecordReplayTest`](src/test/java/com/example/vcrdemo/EmbeddingRecordReplayTest.java) | Record/replay for `EmbeddingModel` (R4) -- the same story `RecordReplayBasicsTest` tells for chat, applied to `embed(String)` instead. `EmbeddingModel` has no advisor chain, so interception is a `BeanPostProcessor` wrapping the autoconfigured `OllamaEmbeddingModel` bean directly, gated by its own `spring.ai.test.vcr.embedding.enabled` flag -- invisible from this test's own code, which just autowires `EmbeddingModel` like any other consumer would. Asserts the replayed vector is *exactly* (not "same length") the recorded one -- `llama3.2:1b`'s real 2048-dimension output, confirmed by a real call, not a dedicated embedding model. |
 | [`EvaluatorRecordReplayTest`](src/test/java/com/example/vcrdemo/EvaluatorRecordReplayTest.java) | Spring AI's own `Evaluator` mechanism (`RelevancyEvaluator`) becomes deterministic for free -- not a spring-ai-test-tools feature, a usage pattern this library's design already supported. `RelevancyEvaluator` is built from the same `ChatClient.Builder` already customized elsewhere in this project; its internal judge call records and replays exactly like any other `ChatClient` call, with no new code. Read the test's own Javadoc for an honest note on what the small model actually judged. |
+| [`SemanticSimilarityRecordReplayTest`](src/test/java/com/example/vcrdemo/SemanticSimilarityRecordReplayTest.java) | `spring-ai-test-tools`'s Assertions layer, A2: `VcrAssertions.assertThat(response).usingEmbeddingModel(embeddingModel).isSemanticallySimilarTo(expected, threshold)` -- "is this answer close enough in meaning," deterministically, since both embedding calls go through the same Recorder-backed `EmbeddingModel` `EmbeddingRecordReplayTest` (R4) already shows. Uses an explicit `0.85` threshold rather than the library's own `0.7` default -- read the test's own Javadoc for the empirical reason (`llama3.2:1b`'s embeddings compress paraphrase/unrelated-sentence similarity into a narrow range that the default doesn't reliably separate). |
 
 ## Running the excluded integration test
 
@@ -152,6 +153,16 @@ schemas, but showing up here in a place that fix doesn't cover (`RelevancyEvalua
 own `PromptTemplate`-rendered judge prompt, which looks like ordinary user-message text
 to the cache key generator). See the test's own Javadoc for why the fix lives in this
 project's test code rather than in spring-ai-test-tools itself.
+
+`SemanticSimilarityRecordReplayTest`'s two fixtures live in their own directory,
+`src/test/resources/llm-cache-embedding-semantic-similarity/` -- a sibling of
+`EmbeddingRecordReplayTest`'s `llm-cache-embedding/`, not a subdirectory of it. That
+distinction actually mattered here: an earlier attempt nested it *inside*
+`llm-cache-embedding/`, which broke `EmbeddingRecordReplayTest`'s own "exactly one
+fixture" assertion -- `Files.list()` on the parent directory counts a subdirectory as an
+entry too, so `EmbeddingRecordReplayTest` suddenly saw two entries instead of one. Fixed
+by keeping the two test's cache directories as siblings, the same way `llm-cache/<test-name>/`
+already keeps every chat fixture directory separate.
 
 To re-record after a real change (a prompt, a model, spring-ai-test-tools itself), delete
 the relevant fixture file(s) and repeat from step 2.
