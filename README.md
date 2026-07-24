@@ -62,6 +62,7 @@ version stay identical; Maven just starts resolving it from Central instead of y
 | [`EvaluatorRecordReplayTest`](src/test/java/com/example/vcrdemo/EvaluatorRecordReplayTest.java) | Spring AI's own `Evaluator` mechanism (`RelevancyEvaluator`) becomes deterministic for free -- not a spring-ai-test-tools feature, a usage pattern this library's design already supported. `RelevancyEvaluator` is built from the same `ChatClient.Builder` already customized elsewhere in this project; its internal judge call records and replays exactly like any other `ChatClient` call, with no new code. Read the test's own Javadoc for an honest note on what the small model actually judged. |
 | [`SemanticSimilarityRecordReplayTest`](src/test/java/com/example/vcrdemo/SemanticSimilarityRecordReplayTest.java) | `spring-ai-test-tools`'s Assertions layer, A2: `VcrAssertions.assertThat(response).usingEmbeddingModel(embeddingModel).isSemanticallySimilarTo(expected, threshold)` -- "is this answer close enough in meaning," deterministically, since both embedding calls go through the same Recorder-backed `EmbeddingModel` `EmbeddingRecordReplayTest` (R4) already shows. Uses an explicit `0.85` threshold rather than the library's own `0.7` default -- read the test's own Javadoc for the empirical reason (`llama3.2:1b`'s embeddings compress paraphrase/unrelated-sentence similarity into a narrow range that the default doesn't reliably separate). |
 | [`EvaluatorLiveDriftCheckTest`](src/test/java/com/example/vcrdemo/EvaluatorLiveDriftCheckTest.java) | E2's "two modes, one evaluator" story, made concrete: the exact same `RelevancyEvaluator`, the exact same `EvaluationRequest` `EvaluatorRecordReplayTest` already replays deterministically, but this test uses `@Vcr(mode = VcrMode.BYPASS)` to reach the real model instead -- proving the committed fixture is neither read nor overwritten. Tagged `integration`, excluded from the default build, needs Ollama reachable every time it runs -- this is the live drift/quality-check path spring-ai-test-tools's `docs/E2-EVALUATION-MODES-PRD.md` documents, deliberately never run in this project's own CI. |
+| [`StreamingRecordReplayTest`](src/test/java/com/example/vcrdemo/StreamingRecordReplayTest.java) | Record/replay for `ChatClient...stream()` (R3) -- the same record-once-replay-forever story `RecordReplayBasicsTest` tells for `.call()`, applied to a streamed `Flux<String>` instead. Asserts the exact recorded chunk sequence (`containsExactly("Yes", ".")`), not just the joined text, since chunk-boundary fidelity is the entire reason `VcrStreamTrack` stores raw chunks rather than a single aggregated answer. |
 
 ## Running the excluded integration test
 
@@ -139,6 +140,20 @@ can never be replayed back into a usable vector, which defeats the entire reason
 fixture type exists. The pleasant surprise: Jackson renders a `float[]` as a single
 compact line rather than one number per line, so the whole fixture is 22 lines, not the
 thousands a naive prediction might expect.
+
+`StreamingRecordReplayTest`'s fixture (`src/test/resources/llm-cache-stream/`) was produced
+the same way as the top-level `.call()` fixtures (step 2's `RECORD_OR_REPLAY`, a real
+`llama3.2:1b` run, then flipped back and re-verified with Ollama stopped), but reading it is
+worth doing differently: unlike every other fixture here, its `response.chunks` array is
+the point of the file. The recorded stream for "Reply with exactly one word: acknowledged"
+came back as three raw chunks -- `"Yes"`, `"."`, and a final chunk carrying no text but the
+`finishReason`/usage metadata -- with `response.aggregateText` (`"Yes."`) alongside purely
+for a reviewer's convenience, never read back for replay. The test's own assertion checks
+the raw chunk list via `containsExactly("Yes", ".")` (the empty finishing chunk isn't
+surfaced by `ChatClient.StreamResponseSpec.content()`), specifically to prove replay
+reproduces the exact chunk sequence a live stream produced, not merely the same final text
+— see `docs/R3-STREAMING-PRD.md` in the main library's repo for why that distinction is the
+entire design point of this fixture type.
 
 `EvaluatorRecordReplayTest`'s fixture (`src/test/resources/llm-cache/evaluator/`) has two
 things worth knowing if you touch it. First, `llama3.2:1b` answered `RelevancyEvaluator`'s

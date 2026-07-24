@@ -1,0 +1,61 @@
+{
+  "schemaVersion" : "1",
+  "hash" : "916e919ba5889c1db461e07e697d4d9f28d5df55913033c574f0c37a4b7a3179",
+  "recordedAt" : "2026-07-24T08:43:05.861620300Z",
+  "canonicalRequest" : "vcr-stream-canonical-form/v1\nmodel=llama3.2:1b\ntemperature= null\ntopP= null\ntopK= null\nmaxTokens= null\nfrequencyPenalty= null\npresencePenalty= null\nstop=\nmessage[user]=Reply with exactly one word: acknowledged\n",
+  "request" : {
+    "model" : "llama3.2:1b",
+    "temperature" : null,
+    "topP" : null,
+    "topK" : null,
+    "maxTokens" : null,
+    "stopSequences" : [ ],
+    "messages" : [ {
+      "type" : "user",
+      "text" : "Reply with exactly one word: acknowledged",
+      "toolCalls" : [ ],
+      "toolResponses" : [ ]
+    } ],
+    "tools" : [ ],
+    "structuredOutput" : null
+  },
+  "response" : {
+    "chunks" : [ {
+      "id" : "",
+      "model" : "llama3.2:1b",
+      "text" : "Yes",
+      "finishReason" : null,
+      "toolCalls" : [ ],
+      "usage" : {
+        "promptTokens" : 0,
+        "completionTokens" : 0,
+        "totalTokens" : 0
+      }
+    }, {
+      "id" : "",
+      "model" : "llama3.2:1b",
+      "text" : ".",
+      "finishReason" : null,
+      "toolCalls" : [ ],
+      "usage" : {
+        "promptTokens" : 0,
+        "completionTokens" : 0,
+        "totalTokens" : 0
+      }
+    }, {
+      "id" : "",
+      "model" : "llama3.2:1b",
+      "text" : "",
+      "finishReason" : "stop",
+      "toolCalls" : [ ],
+      "usage" : {
+        "promptTokens" : 32,
+        "completionTokens" : 3,
+        "totalTokens" : 35
+      }
+    } ],
+    "aggregateText" : "Yes.",
+    "aggregateFinishReason" : "stop",
+    "aggregateToolCalls" : [ ]
+  }
+}
