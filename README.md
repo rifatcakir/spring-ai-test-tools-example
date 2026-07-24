@@ -18,6 +18,11 @@ try it with Ollama stopped entirely (`docker stop ollama` or however you're runn
 see for yourself. One test is the deliberate exception: see
 [`VcrAnnotationEscapeHatchTest`](#what-each-test-demonstrates) below.
 
+[`StubbingErrorScenariosTest`](#what-each-test-demonstrates) goes a step further than
+"needs no Docker" -- it needs no fixture at all, and no Spring context either, since it
+builds its `ChatModel` programmatically via `VcrStubs` instead of replaying anything
+recorded.
+
 ## Setup
 
 spring-ai-test-tools is not yet published to Maven Central. Until it is, install it into
@@ -63,6 +68,7 @@ version stay identical; Maven just starts resolving it from Central instead of y
 | [`SemanticSimilarityRecordReplayTest`](src/test/java/com/example/vcrdemo/SemanticSimilarityRecordReplayTest.java) | `spring-ai-test-tools`'s Assertions layer, A2: `VcrAssertions.assertThat(response).usingEmbeddingModel(embeddingModel).isSemanticallySimilarTo(expected, threshold)` -- "is this answer close enough in meaning," deterministically, since both embedding calls go through the same Recorder-backed `EmbeddingModel` `EmbeddingRecordReplayTest` (R4) already shows. Uses an explicit `0.85` threshold rather than the library's own `0.7` default -- read the test's own Javadoc for the empirical reason (`llama3.2:1b`'s embeddings compress paraphrase/unrelated-sentence similarity into a narrow range that the default doesn't reliably separate). |
 | [`EvaluatorLiveDriftCheckTest`](src/test/java/com/example/vcrdemo/EvaluatorLiveDriftCheckTest.java) | E2's "two modes, one evaluator" story, made concrete: the exact same `RelevancyEvaluator`, the exact same `EvaluationRequest` `EvaluatorRecordReplayTest` already replays deterministically, but this test uses `@Vcr(mode = VcrMode.BYPASS)` to reach the real model instead -- proving the committed fixture is neither read nor overwritten. Tagged `integration`, excluded from the default build, needs Ollama reachable every time it runs -- this is the live drift/quality-check path spring-ai-test-tools's `docs/E2-EVALUATION-MODES-PRD.md` documents, deliberately never run in this project's own CI. |
 | [`StreamingRecordReplayTest`](src/test/java/com/example/vcrdemo/StreamingRecordReplayTest.java) | Record/replay for `ChatClient...stream()` (R3) -- the same record-once-replay-forever story `RecordReplayBasicsTest` tells for `.call()`, applied to a streamed `Flux<String>` instead. Asserts the exact recorded chunk sequence (`containsExactly("Yes", ".")`), not just the joined text, since chunk-boundary fidelity is the entire reason `VcrStreamTrack` stores raw chunks rather than a single aggregated answer. |
+| [`StubbingErrorScenariosTest`](src/test/java/com/example/vcrdemo/StubbingErrorScenariosTest.java) | spring-ai-test-tools's Stub layer (`VcrStubs.chatModel()`), for exactly what no other test here can show: a scenario no real model will reliably reproduce on demand. A `failingWith(...)` stub proves your own error-handling code reacts correctly to a model timeout without waiting for a real one; a `withFinishReason("length")` stub lets `VcrAssertions.assertThat(response).hasFinishReason("length")` check truncation handling deterministically. Unlike every other test in this project, this one needs no fixture, no cache directory, no Ollama, and -- unlike every `@SpringBootTest` elsewhere here -- no Spring context at all: it's a plain JUnit test against a plain Java object. |
 
 ## Running the excluded integration test
 
