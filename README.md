@@ -10,6 +10,12 @@ as an unrelated third-party project would. This exists as spring-ai-test-tools's
 pre-publish verification gate: if something in this repo breaks, the library's public API
 surface broke for a real consumer, not just for its own internal test suite.
 
+The library gives you a choice, per test: a real model, an explicit stub you write inline
+or load from a file (WireMock-style, no hash, no lookup), or record/replay if you'd
+rather capture a real answer once and replay it automatically forever. See
+[`ThreeWaysToTestTheSameScenarioTest`](src/test/java/com/example/vcrdemo/ThreeWaysToTestTheSameScenarioTest.java)
+below for all three side by side.
+
 ## `mvn test` needs no Docker, no Ollama, and no network
 
 Every fixture this project needs is already committed under
@@ -54,6 +60,7 @@ version stay identical; Maven just starts resolving it from Central instead of y
 
 | File | What it shows |
 |---|---|
+| [`ThreeWaysToTestTheSameScenarioTest`](src/test/java/com/example/vcrdemo/ThreeWaysToTestTheSameScenarioTest.java) | **Start here.** The exact same prompt, answered three ways, side by side: a real model (tagged `integration`, needs Ollama), an inline `VcrStubs` response, and a file-sourced one (`src/test/resources/responses/acknowledged.txt`). All three hand back a plain `ChatModel`, so `ChatClient.builder(model)...` is identical in every one of them -- only which model gets constructed differs. The two stub methods need no Spring context at all, even though they happen to live in this `@SpringBootTest`-annotated class for easy side-by-side reading -- see the test's own Javadoc. |
 | [`RecordReplayBasicsTest`](src/test/java/com/example/vcrdemo/RecordReplayBasicsTest.java) | The core loop: record once against a real model, replay identically forever after. `RECORD_OR_REPLAY`, the safe local-development default. |
 | [`ReplayOnlySealedCiTest`](src/test/java/com/example/vcrdemo/ReplayOnlySealedCiTest.java) | `REPLAY_ONLY`, the mode CI actually runs with. A known prompt still replays normally; an unrecorded one throws `VcrCacheMissException` immediately, never touching the network. |
 | [`VcrAnnotationEscapeHatchTest`](src/test/java/com/example/vcrdemo/VcrAnnotationEscapeHatchTest.java) | `@Vcr(mode = VcrMode.BYPASS)` -- one test opting out of a sealed `REPLAY_ONLY` context to reach a real model, without weakening the seal for anything else. Tagged `integration`, excluded from the default build (see below), and needs Ollama reachable every time it runs. |
