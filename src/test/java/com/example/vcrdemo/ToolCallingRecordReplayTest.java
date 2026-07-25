@@ -25,12 +25,16 @@ import static org.assertj.core.api.Assertions.assertThat;
  * the real {@code @Tool} method runs, its result goes back, the model gives a final
  * answer -- replays as two fixtures instead of collapsing into one opaque interaction.
  *
- * <p>Two things matter here that {@link RecordReplayBasicsTest} doesn't need to show:
- * this is a <em>two-turn</em> conversation, so recording it writes two fixtures, not
- * one; and the real {@code @Tool} method (see {@link OrderStatusTool} below) keeps
- * running on every replay, not just on the first, live call -- that's the whole point
- * of {@code INSIDE_TOOL_LOOP} over the default {@code OUTSIDE_TOOL_LOOP}, where a
- * replay would skip the tool loop (and the tool) entirely.
+ * <p>What matters here that {@link RecordReplayBasicsTest} doesn't need to show: this is
+ * a <em>two-turn</em> conversation, so recording it writes two model-turn fixtures, not
+ * one. <strong>The real {@code @Tool} method itself (see {@link OrderStatusTool} below)
+ * never runs at all in this committed, steady-state test</strong> -- its own
+ * tool-execution fixture is committed too, so both calls replay both the model turns and
+ * the tool invocation from disk -- because tool-call isolation
+ * (docs/TOOL-ISOLATION-PRD.md in the main library repo) defaults to full isolation now.
+ * See {@link ToolSideEffectIsolationTest} for a side-by-side demo of this default versus
+ * the {@code @VcrTool(mode = VcrToolMode.EXECUTE_REAL)} opt-in that recovers this
+ * library's older behaviour (the real tool re-running on every replay).
  */
 @SpringBootTest(properties = { "spring.ai.test.vcr.mode=REPLAY_ONLY", "spring.ai.test.vcr.scope=INSIDE_TOOL_LOOP",
 		"spring.ai.test.vcr.cache-directory=src/test/resources/llm-cache/tool-calling" })
@@ -56,7 +60,7 @@ class ToolCallingRecordReplayTest {
 	}
 
 	@Test
-	void toolCallingConversationRecordsTwoTurnsAndReplaysBothWithTheRealToolStillRunning() throws IOException {
+	void toolCallingConversationRecordsTwoTurnsAndReplaysBothWhileTheRealToolStaysIsolated() throws IOException {
 		OrderStatusTool orderStatusTool = new OrderStatusTool();
 		ChatClient chatClient = this.chatClientBuilder.build();
 		String prompt = "What is the status of order ORD-4471? Use the tool to find out, do not guess.";
@@ -71,9 +75,12 @@ class ToolCallingRecordReplayTest {
 			.isEqualTo("The status of order ORD-4471 is \"shipped\" and it will arrive in 2 days.");
 		assertThat(secondResponse).as("a replay must return exactly what was recorded").isEqualTo(firstResponse);
 		assertThat(orderStatusTool.invocations)
-			.as("INSIDE_TOOL_LOOP's real point: the real @Tool method runs again on replay, "
-					+ "even though neither model turn around it reaches the network the second time")
-			.hasValue(2);
+			.as("VcrToolMode.REPLAY_FROM_CASSETTE (the default): with the tool-execution fixture "
+					+ "already committed, the real @Tool method never runs at all -- not even once -- "
+					+ "for either call. Full isolation, not just replayed model turns. See "
+					+ "ToolSideEffectIsolationTest for the EXECUTE_REAL opt-in that recovers the old "
+					+ "always-re-runs behaviour.")
+			.hasValue(0);
 
 		Path cacheDirectory = Path.of("src/test/resources/llm-cache/tool-calling");
 		String combinedFixtureContent;

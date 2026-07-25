@@ -1,0 +1,10 @@
+{
+  "schemaVersion" : "1",
+  "hash" : "b40ddcff42bd6f0a5348ffeed0e1a8355d23259b8e05368e30b874ca60e274fc",
+  "recordedAt" : "2026-07-24T21:13:38.937647800Z",
+  "canonicalRequest" : "vcr-tool-canonical-form/v1\nname=getOrderStatus\narguments={\"orderId\":\"ORD-4471\"}\n",
+  "toolName" : "getOrderStatus",
+  "arguments" : "{\"orderId\":\"ORD-4471\"}",
+  "result" : "\"shipped, arriving in 2 days\"",
+  "returnDirect" : false
+}
