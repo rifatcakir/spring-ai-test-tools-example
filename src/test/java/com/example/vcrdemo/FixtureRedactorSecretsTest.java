@@ -102,7 +102,7 @@ class FixtureRedactorSecretsTest {
 								.stream()
 								.map(message -> new VcrTrack.MessageSnapshot(message.type(),
 										message.text().replaceAll("customer-\\d+", "[REDACTED]"),
-										message.toolCalls(), message.toolResponses()))
+										message.toolCalls(), message.toolResponses(), message.media()))
 								.toList(),
 							track.request().tools(), track.request().structuredOutput()),
 					track.response());

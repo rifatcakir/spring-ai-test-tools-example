@@ -59,14 +59,14 @@ class AssertionsShowcaseTest {
 	void hasJsonFieldAssertsOnAStructuredOutputResponseWithoutConvertingItToAPojoFirst() {
 		VcrTrackStore store = new VcrTrackStore(Path.of("src/test/resources/llm-cache/structured-output"));
 		Optional<VcrTrack> track = store
-			.read("b27b4fbb47a1b84d7b2b25fb386668a5315332ee13a0ce8c8cc4734682b04cab");
+			.read("e0ab2aa84172362fe0f243581700eaa186c0e8d048ffe1dd28b5b90cc9063542");
 		assertThat(track).as("the committed structured-output fixture must still be on disk").isPresent();
 
 		ChatResponse response = new VcrTrackMapper().toChatResponse(track.get());
 
 		VcrAssertions.assertThat(response)
 			.hasJsonField("/carrier", "Turkish Airlines")
-			.hasJsonField("/estimatedDays", 9)
+			.hasJsonField("/estimatedDays", 8)
 			.hasJsonFieldOfType("/estimatedDays", JsonNodeType.NUMBER)
 			.extractingText()
 			.contains("Turkish Airlines");
