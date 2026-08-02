@@ -1,0 +1,38 @@
+{
+  "schemaVersion" : "5",
+  "hash" : "b4a9d6a43b78ddcf2ca2e5ce6f1e6bcab4fb28f37b0f6d778f7008e5b2c81928",
+  "recordedAt" : "2026-08-02T13:15:46.690927300Z",
+  "canonicalRequest" : "vcr-canonical-form/v1\nmodel=llama3.2:1b\ntemperature= null\ntopP= null\ntopK= null\nmaxTokens= null\nfrequencyPenalty= null\npresencePenalty= null\nstop=\nmessage[user]=Is the sky blue? Reply with only yes or no.\n",
+  "request" : {
+    "model" : "llama3.2:1b",
+    "temperature" : null,
+    "topP" : null,
+    "topK" : null,
+    "maxTokens" : null,
+    "stopSequences" : [ ],
+    "messages" : [ {
+      "type" : "user",
+      "text" : "Is the sky blue? Reply with only yes or no.",
+      "toolCalls" : [ ],
+      "toolResponses" : [ ],
+      "media" : [ ]
+    } ],
+    "tools" : [ ],
+    "structuredOutput" : null
+  },
+  "response" : {
+    "id" : "",
+    "model" : "llama3.2:1b",
+    "generations" : [ {
+      "text" : "Yes.",
+      "finishReason" : "stop",
+      "toolCalls" : [ ]
+    } ],
+    "usage" : {
+      "promptTokens" : 37,
+      "completionTokens" : 3,
+      "totalTokens" : 40
+    },
+    "metadata" : { }
+  }
+}

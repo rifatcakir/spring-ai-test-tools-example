@@ -1,0 +1,38 @@
+{
+  "schemaVersion" : "5",
+  "hash" : "5f1a02ea619d5604d20debfdfe6513fb5b3dc00888f722513b1e99afb771d5c0",
+  "recordedAt" : "2026-08-02T13:15:47.055850400Z",
+  "canonicalRequest" : "vcr-canonical-form/v1\nmodel=llama3.2:1b\ntemperature= null\ntopP= null\ntopK= null\nmaxTokens= null\nfrequencyPenalty= null\npresencePenalty= null\nstop=\nmessage[user]=What is 7 multiplied by 6? Reply with only the number.\n",
+  "request" : {
+    "model" : "llama3.2:1b",
+    "temperature" : null,
+    "topP" : null,
+    "topK" : null,
+    "maxTokens" : null,
+    "stopSequences" : [ ],
+    "messages" : [ {
+      "type" : "user",
+      "text" : "What is 7 multiplied by 6? Reply with only the number.",
+      "toolCalls" : [ ],
+      "toolResponses" : [ ],
+      "media" : [ ]
+    } ],
+    "tools" : [ ],
+    "structuredOutput" : null
+  },
+  "response" : {
+    "id" : "",
+    "model" : "llama3.2:1b",
+    "generations" : [ {
+      "text" : "42",
+      "finishReason" : "stop",
+      "toolCalls" : [ ]
+    } ],
+    "usage" : {
+      "promptTokens" : 40,
+      "completionTokens" : 2,
+      "totalTokens" : 42
+    },
+    "metadata" : { }
+  }
+}

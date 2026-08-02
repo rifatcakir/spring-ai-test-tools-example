@@ -1,0 +1,38 @@
+{
+  "schemaVersion" : "5",
+  "hash" : "e91d6e05cb2afda7463b1b08fea73d7205b7c8c7e3e736615ff029e21ce9edd5",
+  "recordedAt" : "2026-08-02T13:15:46.899903100Z",
+  "canonicalRequest" : "vcr-canonical-form/v1\nmodel=llama3.2:1b\ntemperature= null\ntopP= null\ntopK= null\nmaxTokens= null\nfrequencyPenalty= null\npresencePenalty= null\nstop=\nmessage[user]=Reply with exactly one word: hello\n",
+  "request" : {
+    "model" : "llama3.2:1b",
+    "temperature" : null,
+    "topP" : null,
+    "topK" : null,
+    "maxTokens" : null,
+    "stopSequences" : [ ],
+    "messages" : [ {
+      "type" : "user",
+      "text" : "Reply with exactly one word: hello",
+      "toolCalls" : [ ],
+      "toolResponses" : [ ],
+      "media" : [ ]
+    } ],
+    "tools" : [ ],
+    "structuredOutput" : null
+  },
+  "response" : {
+    "id" : "",
+    "model" : "llama3.2:1b",
+    "generations" : [ {
+      "text" : "Good",
+      "finishReason" : "stop",
+      "toolCalls" : [ ]
+    } ],
+    "usage" : {
+      "promptTokens" : 32,
+      "completionTokens" : 2,
+      "totalTokens" : 34
+    },
+    "metadata" : { }
+  }
+}

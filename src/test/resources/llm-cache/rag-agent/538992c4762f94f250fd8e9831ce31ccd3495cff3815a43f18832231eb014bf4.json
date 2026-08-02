@@ -1,0 +1,44 @@
+{
+  "schemaVersion" : "5",
+  "hash" : "538992c4762f94f250fd8e9831ce31ccd3495cff3815a43f18832231eb014bf4",
+  "recordedAt" : "2026-07-31T18:49:20.729022200Z",
+  "canonicalRequest" : "vcr-canonical-form/v1\nmodel=llama3.2:1b\ntemperature= null\ntopP= null\ntopK= null\nmaxTokens= null\nfrequencyPenalty= null\npresencePenalty= null\nstop=\nmessage[system]=Answer the user's question using only the information in the documents below. If a document is not relevant to the question, ignore it.\\n\\nDocument: Nefeli Robotics Return Policy. Nefeli Robotics offers a 45-day return window on all drone products, but only if the original packaging is kept. Refunds are issued to the original payment method within 5 business days of the returned item being received.\\n\\nDocument: Nefeli Robotics Office Locations. Nefeli Robotics has offices in Lisbon and Nairobi, and a warehouse in Rotterdam.\nmessage[user]=What is Nefeli Robotics' return policy?\n",
+  "request" : {
+    "model" : "llama3.2:1b",
+    "temperature" : null,
+    "topP" : null,
+    "topK" : null,
+    "maxTokens" : null,
+    "stopSequences" : [ ],
+    "messages" : [ {
+      "type" : "system",
+      "text" : "Answer the user's question using only the information in the documents below. If a document is not relevant to the question, ignore it.\n\nDocument: Nefeli Robotics Return Policy. Nefeli Robotics offers a 45-day return window on all drone products, but only if the original packaging is kept. Refunds are issued to the original payment method within 5 business days of the returned item being received.\n\nDocument: Nefeli Robotics Office Locations. Nefeli Robotics has offices in Lisbon and Nairobi, and a warehouse in Rotterdam.",
+      "toolCalls" : [ ],
+      "toolResponses" : [ ],
+      "media" : [ ]
+    }, {
+      "type" : "user",
+      "text" : "What is Nefeli Robotics' return policy?",
+      "toolCalls" : [ ],
+      "toolResponses" : [ ],
+      "media" : [ ]
+    } ],
+    "tools" : [ ],
+    "structuredOutput" : null
+  },
+  "response" : {
+    "id" : "",
+    "model" : "llama3.2:1b",
+    "generations" : [ {
+      "text" : "According to the documents, Nefeli Robotics offers a 45-day return window on all drone products, but only if the original packaging is kept. Refunds are issued to the original payment method within 5 business days of the returned item being received.",
+      "finishReason" : "stop",
+      "toolCalls" : [ ]
+    } ],
+    "usage" : {
+      "promptTokens" : 143,
+      "completionTokens" : 52,
+      "totalTokens" : 195
+    },
+    "metadata" : { }
+  }
+}
