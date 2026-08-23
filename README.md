@@ -69,6 +69,7 @@ version stay identical; Maven just starts resolving it from Central instead of y
 | [`AutoConfigPropertiesYamlTest`](src/test/java/com/example/vcrdemo/AutoConfigPropertiesYamlTest.java) | The "quick start" story: zero `@Bean`, zero manual advisor wiring, just `spring.ai.test.vcr.*` properties. Contrast with the two tests above, which each need one extra bean on top of this baseline. |
 | [`ToolCallingRecordReplayTest`](src/test/java/com/example/vcrdemo/ToolCallingRecordReplayTest.java) | How to test a real `@Tool` method deterministically. `VcrScope.INSIDE_TOOL_LOOP` caches one fixture per model turn, so a two-turn tool-calling conversation (the model asks to call the tool, the real tool runs, its result goes back, the model answers) records two fixtures, not one -- and the real `@Tool` method keeps running on every replay, not just on the first live call. |
 | [`StructuredOutputRecordReplayTest`](src/test/java/com/example/vcrdemo/StructuredOutputRecordReplayTest.java) | How to test a `ChatClient...call().entity(Class)` structured-output call deterministically. POJO conversion happens client-side after the (possibly replayed) response comes back, so a replay converts to the same object a live call already produced. Uses `spec.useProviderStructuredOutput()` -- Ollama's native, JSON-schema-constrained decoding -- which this project's small model follows far more reliably than the default text-instruction-based converter. |
+| [`SelfCorrectingStructuredOutputRecordReplayTest`](src/test/java/com/example/vcrdemo/SelfCorrectingStructuredOutputRecordReplayTest.java) | Spring AI 2.0's new self-correcting structured output -- `.entity(Class, spec -> spec.validateSchema())` -- needs zero extra spring-ai-test-tools configuration on top of `StructuredOutputRecordReplayTest` above. `StructuredOutputValidationAdvisor`'s retry loop (default order `LOWEST_PRECEDENCE - 2000`) sits *below* where this library's advisor runs, so the whole self-correction loop -- real retries included -- is recorded as one fixture: VCR only ever sees the loop's final, validated answer. Deliberately uses the *default* text-instruction converter (not `useProviderStructuredOutput()`) since `validateSchema()` exists to catch and correct exactly the kind of malformed JSON that converter is more prone to. See the test's own Javadoc for an honest note on what this specific recording actually needed (no retry, as it happens) and a pointer to the main library's own e2e test, which forces a real multi-attempt loop deterministically to prove the mechanism itself. |
 | [`RagAgentRecordReplayTest`](src/test/java/com/example/vcrdemo/RagAgentRecordReplayTest.java) | Testing a RAG agent's *generation* step deterministically -- retrieval is a separate concern this library doesn't cache, but whatever retrieval hands back becomes a system message injected into the prompt, exactly like a `QuestionAnswerAdvisor`-style pipeline produces by the time a request reaches this library's own advisor. The two "retrieved documents" describe a fictional company's fictional return policy on purpose: a correct-looking answer to a real-world fact would prove nothing, since the model could have guessed it, but there is no way `llama3.2:1b` has an invented 45-day/original-packaging policy memorized. One of the two documents is deliberately irrelevant too, proving the model picked the right one out of more than one candidate. |
 | [`MultiToolAgentRecordReplayTest`](src/test/java/com/example/vcrdemo/MultiToolAgentRecordReplayTest.java) | What `ToolCallingRecordReplayTest`'s single tool can't show: an agent with a genuine *choice*. Two `@Tool` methods are registered -- `getOrderStatus` and an irrelevant decoy, `getWeatherForCity` -- and the fixture proves the model called only the right one, out of more than one candidate, with both tools' invocation counters staying at zero on replay (`VcrToolMode.REPLAY_FROM_CASSETTE`, the default isolation). Kept to a single string argument per tool deliberately: `llama3.2:1b` reliably produces a real structured tool call for that shape, but not for the two-argument version tried first -- see the test's own Javadoc. |
 | [`PromptRegressionSuiteTest`](src/test/java/com/example/vcrdemo/PromptRegressionSuiteTest.java) | The story design rule #5 in the main library tells but no other test here demonstrates end to end: a committed fixture *is* a prompt regression check. Three unrelated prompts are this project's small "golden suite," each answer pinned exactly like a snapshot test. A fourth test proves the payoff concretely -- reshaping one golden prompt by a single word (`"the number"` -> `"the numeral"`) is a different SHA-256 hash, so it is a loud, immediate `VcrCacheMissException` under sealed `REPLAY_ONLY`, never a silently-reused "close enough" answer. |
@@ -97,8 +98,9 @@ reach the real model. Every other test needs none of that.
 2. Temporarily set the mode property in `ReplayOnlySealedCiTest.AKnownPromptStillReplays`,
    `PromptNormalizerVolatileValuesTest`, `FixtureRedactorSecretsTest`,
    `ToolCallingRecordReplayTest`, `StructuredOutputRecordReplayTest`,
-   `RagAgentRecordReplayTest`, `MultiToolAgentRecordReplayTest`, and
-   `PromptRegressionSuiteTest` from `REPLAY_ONLY` to `RECORD_OR_REPLAY`
+   `SelfCorrectingStructuredOutputRecordReplayTest`, `RagAgentRecordReplayTest`,
+   `MultiToolAgentRecordReplayTest`, and `PromptRegressionSuiteTest` from `REPLAY_ONLY` to
+   `RECORD_OR_REPLAY`
    (`RecordReplayBasicsTest` and `AutoConfigPropertiesYamlTest` already use
    `RECORD_OR_REPLAY` permanently -- no change needed for those). For
    `PromptRegressionSuiteTest` specifically, run only its three golden-prompt methods
@@ -208,6 +210,19 @@ reuses `EvaluatorRecordReplayTest`'s already-committed fixture and cache directo
 `@Vcr(mode = VcrMode.BYPASS)` simply bypasses it instead of reading it. That is the
 entire point: the same fixture, read deterministically by one test and ignored on
 purpose by the other, depending only on which mode each test asks for.
+
+`SelfCorrectingStructuredOutputRecordReplayTest`'s fixture
+(`src/test/resources/llm-cache/self-correcting-structured-output/`) was produced the same
+way as the top-level `.call().entity()` fixtures (step 2's `RECORD_OR_REPLAY`, a real
+`llama3.2:1b` run, then flipped back to `REPLAY_ONLY` and re-verified with Ollama stopped).
+Worth knowing if you touch it: on this particular recording, `llama3.2:1b` produced valid
+JSON matching the schema on its *first* attempt -- `StructuredOutputValidationAdvisor`'s
+retry loop never actually looped. That's a genuine, unforced outcome (this project doesn't
+retry recordings until an interesting one happens), not a sign the self-correction feature
+went untested -- see the test's own Javadoc, which points to the main library's
+`OllamaStructuredOutputValidationEndToEndTests` for a fixture that *does* force and prove a
+real multi-attempt retry, deterministically, via a schema requiring a value the model is
+never shown (so it can't be satisfied by luck).
 
 To re-record after a real change (a prompt, a model, spring-ai-test-tools itself), delete
 the relevant fixture file(s) and repeat from step 2.

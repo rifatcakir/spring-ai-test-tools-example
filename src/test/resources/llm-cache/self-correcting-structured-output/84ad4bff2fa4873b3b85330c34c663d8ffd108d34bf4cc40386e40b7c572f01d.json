@@ -1,0 +1,41 @@
+{
+  "schemaVersion" : "5",
+  "hash" : "84ad4bff2fa4873b3b85330c34c663d8ffd108d34bf4cc40386e40b7c572f01d",
+  "recordedAt" : "2026-08-23T09:55:23.954825800Z",
+  "canonicalRequest" : "vcr-canonical-form/v1\nmodel=llama3.2:1b\ntemperature= null\ntopP= null\ntopK= null\nmaxTokens= null\nfrequencyPenalty= null\npresencePenalty= null\nstop=\noutputFormat=Your response should be in JSON format.\\nDo not include any explanations, only provide a RFC8259 compliant JSON response following this format without deviation.\\nDo not include markdown code blocks in your response.\\nRemove the ```json markdown from the output.\\nHere is the JSON Schema instance your output must adhere to:\\n```{\\n  \"$schema\" : \"https://json-schema.org/draft/2020-12/schema\",\\n  \"type\" : \"object\",\\n  \"properties\" : {\\n    \"activities\" : {\\n      \"type\" : \"array\",\\n      \"items\" : {\\n        \"type\" : \"string\"\\n      }\\n    },\\n    \"destination\" : {\\n      \"type\" : \"string\"\\n    },\\n    \"visaRequired\" : {\\n      \"type\" : \"boolean\"\\n    }\\n  },\\n  \"required\" : [ \"activities\", \"destination\", \"visaRequired\" ],\\n  \"additionalProperties\" : false\\n}```\\n\nmessage[user]=Invent a short, fictional weekend trip itinerary. The destination must be a real city, activities must be a list of at least two short strings, and visaRequired must be true or false.\n",
+  "request" : {
+    "model" : "llama3.2:1b",
+    "temperature" : null,
+    "topP" : null,
+    "topK" : null,
+    "maxTokens" : null,
+    "stopSequences" : [ ],
+    "messages" : [ {
+      "type" : "user",
+      "text" : "Invent a short, fictional weekend trip itinerary. The destination must be a real city, activities must be a list of at least two short strings, and visaRequired must be true or false.",
+      "toolCalls" : [ ],
+      "toolResponses" : [ ],
+      "media" : [ ]
+    } ],
+    "tools" : [ ],
+    "structuredOutput" : {
+      "format" : "Your response should be in JSON format.\nDo not include any explanations, only provide a RFC8259 compliant JSON response following this format without deviation.\nDo not include markdown code blocks in your response.\nRemove the ```json markdown from the output.\nHere is the JSON Schema instance your output must adhere to:\n```{\n  \"$schema\" : \"https://json-schema.org/draft/2020-12/schema\",\n  \"type\" : \"object\",\n  \"properties\" : {\n    \"activities\" : {\n      \"type\" : \"array\",\n      \"items\" : {\n        \"type\" : \"string\"\n      }\n    },\n    \"destination\" : {\n      \"type\" : \"string\"\n    },\n    \"visaRequired\" : {\n      \"type\" : \"boolean\"\n    }\n  },\n  \"required\" : [ \"activities\", \"destination\", \"visaRequired\" ],\n  \"additionalProperties\" : false\n}```\n",
+      "jsonSchema" : null
+    }
+  },
+  "response" : {
+    "id" : "",
+    "model" : "llama3.2:1b",
+    "generations" : [ {
+      "text" : "{\n  \"activities\": [\"Visit the iconic Eiffel Tower for panoramic views of Paris\"],\n  \"destination\": \"Paris, France\",\n  \"visaRequired\": true\n}",
+      "finishReason" : "stop",
+      "toolCalls" : [ ]
+    } ],
+    "usage" : {
+      "promptTokens" : 254,
+      "completionTokens" : 37,
+      "totalTokens" : 291
+    },
+    "metadata" : { }
+  }
+}
