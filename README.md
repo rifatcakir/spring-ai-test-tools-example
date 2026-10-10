@@ -136,9 +136,9 @@ mvn test -Pintegration
 ```
 
 Needs Ollama reachable at `http://localhost:11434` with `llama3.2:1b` pulled (see
-`src/test/resources/application.yml`) -- both `VcrAnnotationEscapeHatchTest` and
-`EvaluatorLiveDriftCheckTest` need it, since both use `@Vcr(mode = VcrMode.BYPASS)` to
-reach the real model. Every other test needs none of that.
+`src/test/resources/application.yml`) -- `VcrAnnotationEscapeHatchTest`,
+`EvaluatorLiveDriftCheckTest` and `ThreeWaysToTestTheSameScenarioTest.answersWithARealModel`
+need it, since all three use `@Vcr(mode = VcrMode.BYPASS)` to reach the real model. Every other test needs none of that.
 
 ## How the fixtures were produced
 
