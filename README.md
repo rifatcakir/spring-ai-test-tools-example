@@ -60,6 +60,7 @@ milestones too (checked 2026-10-10 by overriding `spring-ai.version` and
 | [`RecordReplayBasicsTest`](src/test/java/com/example/vcrdemo/RecordReplayBasicsTest.java) | The core loop: record once against a real model, replay identically forever after. `RECORD_OR_REPLAY`, the safe local-development default. |
 | [`ReplayOnlySealedCiTest`](src/test/java/com/example/vcrdemo/ReplayOnlySealedCiTest.java) | `REPLAY_ONLY`, the mode CI actually runs with. A known prompt still replays normally; an unrecorded one throws `VcrCacheMissException` immediately, never touching the network. |
 | [`CassetteServerRemoteStoreTest`](src/test/java/com/example/vcrdemo/CassetteServerRemoteStoreTest.java) | **Server and client.** The same `ChatClient` call as `ReplayOnlySealedCiTest`, with the fixture on a [Cassette Server](https://github.com/rifatcakir/spring-ai-test-tools-server) instead of on disk: `store: remote`, a URL and a namespace, no code changes. The real server image runs in Docker, seeded with the very fixture file `ReplayOnlySealedCiTest` replays. The application sets no mode; the server's namespace default (`REPLAY_ONLY`) decides, so an unrecorded prompt fails loudly and shows up in the server's misses log. See [below](#server-and-client-shared-fixtures-on-a-cassette-server). |
+| [`CassetteServerSharedEnvironmentTest`](src/test/java/com/example/vcrdemo/CassetteServerSharedEnvironmentTest.java) | **A shared test environment, scenario by scenario.** Separate application instances (separate Spring contexts, like separate deployments) against one Cassette Server: two instances share one recording, so the second never calls the model; an admin re-records an environment (`RECORD_ALWAYS`) and seals it again (`REPLAY_ONLY`) without redeploying; deleting a fixture forces a re-record; an export unzipped into `src/test/resources` replays with `store: file`; and an unreachable server fails loudly instead of calling the model. A small counting stand-in plays the model, so every scenario asserts exactly how many model calls happened, with no real model needed. |
 | [`VcrAnnotationEscapeHatchTest`](src/test/java/com/example/vcrdemo/VcrAnnotationEscapeHatchTest.java) | `@Vcr(mode = VcrMode.BYPASS)` -- one test opting out of a sealed `REPLAY_ONLY` context to reach a real model, without weakening the seal for anything else. Tagged `integration`, excluded from the default build (see below), and needs Ollama reachable every time it runs. |
 | [`PromptNormalizerVolatileValuesTest`](src/test/java/com/example/vcrdemo/PromptNormalizerVolatileValuesTest.java) | A `VcrPromptNormalizer` bean (`RegexPromptNormalizer.ISO_DATE`) collapsing two prompts that differ only by which calendar date they name into one committed fixture. |
 | [`FixtureRedactorSecretsTest`](src/test/java/com/example/vcrdemo/FixtureRedactorSecretsTest.java) | A `VcrFixtureRedactor` bean keeping a customer id out of the committed fixture -- read the JSON in `llm-cache/redactor/` yourself -- while two different customer ids still produce two separate fixtures, proving redaction can never cause a cache collision. |
@@ -99,7 +100,10 @@ spring:
 ```
 
 [`CassetteServerRemoteStoreTest`](src/test/java/com/example/vcrdemo/CassetteServerRemoteStoreTest.java)
-shows it automatically, with the server in Docker. To try it by hand instead, with just Java:
+shows the basics automatically, with the server in Docker, and
+[`CassetteServerSharedEnvironmentTest`](src/test/java/com/example/vcrdemo/CassetteServerSharedEnvironmentTest.java)
+walks through a shared environment: several instances, an admin switching modes at runtime,
+re-recording, and exporting back into the project. To try it by hand instead, with just Java:
 
 ```bash
 # 1. The server: one jar, no Docker needed
