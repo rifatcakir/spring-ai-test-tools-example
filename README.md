@@ -16,13 +16,17 @@ rather capture a real answer once and replay it automatically forever. See
 [`ThreeWaysToTestTheSameScenarioTest`](src/test/java/com/example/vcrdemo/ThreeWaysToTestTheSameScenarioTest.java)
 below for all three side by side.
 
-## `mvn test` needs no Docker, no Ollama, and no network
+## `mvn test` needs no Ollama and no model
 
 Every fixture this project needs is already committed under
 `src/test/resources/llm-cache/`. Clone this repo, run `mvn test`, and it passes cold --
 try it with Ollama stopped entirely (`docker stop ollama` or however you're running it) to
-see for yourself. One test is the deliberate exception: see
-[`VcrAnnotationEscapeHatchTest`](#what-each-test-demonstrates) below.
+see for yourself. Two exceptions, both deliberate:
+[`VcrAnnotationEscapeHatchTest`](#what-each-test-demonstrates) needs a real model (and is
+excluded from the default build), and
+[`CassetteServerRemoteStoreTest`](#server-and-client-shared-fixtures-on-a-cassette-server)
+starts the Cassette Server in Docker (and is skipped when Docker isn't available). Neither
+needs a model in the default build.
 
 [`StubbingErrorScenariosTest`](#what-each-test-demonstrates) goes a step further than
 "needs no Docker" -- it needs no fixture at all, and no Spring context either, since it
@@ -31,30 +35,22 @@ recorded.
 
 ## Setup
 
-spring-ai-test-tools is not yet published to Maven Central. Until it is, install it into
-your local repository first:
-
-```bash
-cd ../spring-ai-test-tools   # or wherever you cloned it
-mvn clean install          # not -Prelease -- no signing needed just to consume it locally
-```
-
-This project's `pom.xml` then depends on it as an ordinary, fixed-version dependency:
+Nothing to install: the library comes from Maven Central, as an ordinary test dependency.
 
 ```xml
 <dependency>
     <groupId>io.github.rifatcakir</groupId>
     <artifactId>spring-ai-test-tools</artifactId>
-    <version>0.1.0</version>
+    <version>0.2.0</version>
     <scope>test</scope>
 </dependency>
 ```
 
-(The published Maven artifactId is `spring-ai-test-tools`; the GitHub repo it's built from was renamed to match, from `spring-ai-test-vcr` to `spring-ai-test-tools`.)
-
-**Nothing here changes once the library is actually published.** The coordinate and
-version stay identical; Maven just starts resolving it from Central instead of your local
-`~/.m2/repository`.
+This project runs on the newest stable Spring AI (2.0.1) and Spring Boot (4.1.1), while the
+library itself is built against Spring AI 2.0.0 and Spring Boot 4.0.0: the same tests and the
+same committed fixtures pass on both, and on the Spring AI 2.1.0-M1 / Spring Boot 4.2.0-M2
+milestones too (checked 2026-10-10 by overriding `spring-ai.version` and
+`spring-boot.version`).
 
 ## What each test demonstrates
 
@@ -63,6 +59,7 @@ version stay identical; Maven just starts resolving it from Central instead of y
 | [`ThreeWaysToTestTheSameScenarioTest`](src/test/java/com/example/vcrdemo/ThreeWaysToTestTheSameScenarioTest.java) | **Start here.** The exact same prompt, answered three ways, side by side: a real model (tagged `integration`, needs Ollama), an inline `VcrStubs` response, and a file-sourced one (`src/test/resources/responses/acknowledged.txt`). All three hand back a plain `ChatModel`, so `ChatClient.builder(model)...` is identical in every one of them -- only which model gets constructed differs. The two stub methods need no Spring context at all, even though they happen to live in this `@SpringBootTest`-annotated class for easy side-by-side reading -- see the test's own Javadoc. |
 | [`RecordReplayBasicsTest`](src/test/java/com/example/vcrdemo/RecordReplayBasicsTest.java) | The core loop: record once against a real model, replay identically forever after. `RECORD_OR_REPLAY`, the safe local-development default. |
 | [`ReplayOnlySealedCiTest`](src/test/java/com/example/vcrdemo/ReplayOnlySealedCiTest.java) | `REPLAY_ONLY`, the mode CI actually runs with. A known prompt still replays normally; an unrecorded one throws `VcrCacheMissException` immediately, never touching the network. |
+| [`CassetteServerRemoteStoreTest`](src/test/java/com/example/vcrdemo/CassetteServerRemoteStoreTest.java) | **Server and client.** The same `ChatClient` call as `ReplayOnlySealedCiTest`, with the fixture on a [Cassette Server](https://github.com/rifatcakir/spring-ai-test-tools-server) instead of on disk: `store: remote`, a URL and a namespace, no code changes. The real server image runs in Docker, seeded with the very fixture file `ReplayOnlySealedCiTest` replays. The application sets no mode; the server's namespace default (`REPLAY_ONLY`) decides, so an unrecorded prompt fails loudly and shows up in the server's misses log. See [below](#server-and-client-shared-fixtures-on-a-cassette-server). |
 | [`VcrAnnotationEscapeHatchTest`](src/test/java/com/example/vcrdemo/VcrAnnotationEscapeHatchTest.java) | `@Vcr(mode = VcrMode.BYPASS)` -- one test opting out of a sealed `REPLAY_ONLY` context to reach a real model, without weakening the seal for anything else. Tagged `integration`, excluded from the default build (see below), and needs Ollama reachable every time it runs. |
 | [`PromptNormalizerVolatileValuesTest`](src/test/java/com/example/vcrdemo/PromptNormalizerVolatileValuesTest.java) | A `VcrPromptNormalizer` bean (`RegexPromptNormalizer.ISO_DATE`) collapsing two prompts that differ only by which calendar date they name into one committed fixture. |
 | [`FixtureRedactorSecretsTest`](src/test/java/com/example/vcrdemo/FixtureRedactorSecretsTest.java) | A `VcrFixtureRedactor` bean keeping a customer id out of the committed fixture -- read the JSON in `llm-cache/redactor/` yourself -- while two different customer ids still produce two separate fixtures, proving redaction can never cause a cache collision. |
@@ -80,6 +77,53 @@ version stay identical; Maven just starts resolving it from Central instead of y
 | [`EvaluatorLiveDriftCheckTest`](src/test/java/com/example/vcrdemo/EvaluatorLiveDriftCheckTest.java) | E2's "two modes, one evaluator" story, made concrete: the exact same `RelevancyEvaluator`, the exact same `EvaluationRequest` `EvaluatorRecordReplayTest` already replays deterministically, but this test uses `@Vcr(mode = VcrMode.BYPASS)` to reach the real model instead -- proving the committed fixture is neither read nor overwritten. Tagged `integration`, excluded from the default build, needs Ollama reachable every time it runs -- this is the live drift/quality-check path spring-ai-test-tools's `docs/E2-EVALUATION-MODES-PRD.md` documents, deliberately never run in this project's own CI. |
 | [`StreamingRecordReplayTest`](src/test/java/com/example/vcrdemo/StreamingRecordReplayTest.java) | Record/replay for `ChatClient...stream()` (R3) -- the same record-once-replay-forever story `RecordReplayBasicsTest` tells for `.call()`, applied to a streamed `Flux<String>` instead. Asserts the exact recorded chunk sequence (`containsExactly("Yes", ".")`), not just the joined text, since chunk-boundary fidelity is the entire reason `VcrStreamTrack` stores raw chunks rather than a single aggregated answer. |
 | [`StubbingErrorScenariosTest`](src/test/java/com/example/vcrdemo/StubbingErrorScenariosTest.java) | spring-ai-test-tools's Stub layer (`VcrStubs.chatModel()`), for exactly what no other test here can show: a scenario no real model will reliably reproduce on demand. A `failingWith(...)` stub proves your own error-handling code reacts correctly to a model timeout without waiting for a real one; a `withFinishReason("length")` stub lets `VcrAssertions.assertThat(response).hasFinishReason("length")` check truncation handling deterministically. Unlike every other test in this project, this one needs no fixture, no cache directory, no Ollama, and -- unlike every `@SpringBootTest` elsewhere here -- no Spring context at all: it's a plain JUnit test against a plain Java object. |
+
+## Server and client: shared fixtures on a Cassette Server
+
+Fixtures under `src/test/resources` serve a laptop and CI. A deployed test environment, or
+several services sharing one set of recordings, keep them on a
+[Cassette Server](https://github.com/rifatcakir/spring-ai-test-tools-server) instead. The library is the client: hashing, record/replay, tool
+isolation and redaction stay in the application, and the server only stores the fixtures.
+Switching is configuration only:
+
+```yaml
+spring:
+  ai:
+    test:
+      vcr:
+        enabled: true
+        store: remote
+        remote:
+          url: http://localhost:9090
+          namespace: example
+```
+
+[`CassetteServerRemoteStoreTest`](src/test/java/com/example/vcrdemo/CassetteServerRemoteStoreTest.java)
+shows it automatically, with the server in Docker. To try it by hand instead, with just Java:
+
+```bash
+# 1. The server: one jar, no Docker needed
+curl -LO https://github.com/rifatcakir/spring-ai-test-tools-server/releases/download/v0.2.0/spring-ai-test-tools-server-0.2.0.jar
+java -jar spring-ai-test-tools-server-0.2.0.jar --storage-dir=./cassettes --admin-token=secret
+
+# 2. Seed namespace "example" with this project's committed fixtures, unchanged
+#    (a server namespace has exactly the library's file layout)
+mkdir -p cassettes/example && cp -r src/test/resources/llm-cache/basics cassettes/example/llm-cache
+
+# 3. Run an existing test against the server instead of the files (no model needed)
+mvn test -Dtest=RecordReplayBasicsTest -Dspring.ai.test.vcr.store=remote \
+  -Dspring.ai.test.vcr.remote.url=http://localhost:9090 -Dspring.ai.test.vcr.remote.namespace=example
+
+# 4. See what the server holds
+curl -H "Authorization: Bearer secret" http://localhost:9090/__admin/namespaces/example/fixtures
+```
+
+The test passes with Ollama stopped: both calls are `VCR CACHE HIT`s served by the server. With
+a model running and a namespace that lacks a fixture, the same configuration records to the
+server instead; `GET /__admin/namespaces/example/export` returns the recordings as a zip in the
+`src/test/resources` layout, ready to commit.
+
+Use the same server version as the library (0.2.0 here).
 
 ## Running the excluded integration test
 
@@ -229,7 +273,8 @@ the relevant fixture file(s) and repeat from step 2.
 
 ## Requirements
 
-Java 21 · Spring Boot 4.0+ · Spring AI 2.0+ -- matching spring-ai-test-tools itself.
+Java 21 · Spring Boot 4.0+ · Spring AI 2.0+ (this project: Spring AI 2.0.1, Spring Boot 4.1.1) ·
+Docker only for `CassetteServerRemoteStoreTest`, which is skipped without it.
 
 ## Licence
 

@@ -16,3 +16,7 @@ target/
 # Fixtures under src/test/resources/llm-cache are intentionally NOT ignored.
 # They are the whole point of this project: commit them so `mvn test` needs
 # no Docker, no Ollama, and no network at all.
+
+# From the README's Cassette Server walkthrough.
+cassettes/
+spring-ai-test-tools-server-*.jar

@@ -22,9 +22,11 @@
         <maven.compiler.release>21</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <!-- Matches the versions spring-ai-test-vcr itself is built against. -->
-        <spring-boot.version>4.0.0</spring-boot.version>
-        <spring-ai.version>2.0.0</spring-ai.version>
+        <!-- The newest stable Spring AI and the Spring Boot built on the same Spring Framework
+             (7.0.9). The library itself is built against 2.0.0 / 4.0.0; this example proves it
+             works unchanged on the newest ones, committed fixtures included. -->
+        <spring-boot.version>4.1.1</spring-boot.version>
+        <spring-ai.version>2.0.1</spring-ai.version>
 
         <!-- Overridden to empty by the -Pintegration profile below, same mechanism
              spring-ai-test-vcr's own pom uses and for the same reason: a profile's
@@ -67,21 +69,33 @@
         </dependency>
 
         <!--
-            The library under test. Deliberately an ordinary dependency at a fixed
-            released coordinate, scope=test, exactly what README.md's Quick Start shows,
-            and exactly what this will look like once it is resolved from Maven Central
-            instead of a local `mvn install`. Nothing here changes on that day.
+            The library under test, from Maven Central, scope=test, exactly what README.md's
+            Quick Start shows. 0.2.0 is the first version with the remote store, which
+            CassetteServerRemoteStoreTest uses.
         -->
         <dependency>
             <groupId>io.github.rifatcakir</groupId>
             <artifactId>spring-ai-test-tools</artifactId>
-            <version>0.1.0</version>
+            <version>0.2.0</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Starts the real Cassette Server image for CassetteServerRemoteStoreTest. Versions
+             managed by Spring Boot's dependency management. -->
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>testcontainers</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>testcontainers-junit-jupiter</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -91,6 +105,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.13.0</version>
                 <configuration>
                     <parameters>true</parameters>
                 </configuration>
@@ -98,6 +113,10 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
+                <!-- Pinned: the GitHub runner image's Maven defaults to surefire 3.6.0,
+                     which ignores excludedGroups below, so the integration test would run
+                     (and fail, with no Ollama) in plain `mvn test`. Same fix as the library. -->
+                <version>3.5.4</version>
                 <configuration>
                     <!-- VcrAnnotationEscapeHatchTest needs a real, reachable Ollama every
                          time it runs (that's its whole point), so it's excluded from the
