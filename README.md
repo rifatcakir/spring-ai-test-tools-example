@@ -112,7 +112,7 @@ java -jar spring-ai-test-tools-server-0.2.0.jar --storage-dir=./cassettes --admi
 
 # 2. Seed namespace "example" with this project's committed fixtures, unchanged
 #    (a server namespace has exactly the library's file layout)
-mkdir -p cassettes/example && cp -r src/test/resources/llm-cache/basics cassettes/example/llm-cache
+mkdir -p cassettes/example/llm-cache && cp src/test/resources/llm-cache/basics/*.json cassettes/example/llm-cache/
 
 # 3. Run an existing test against the server instead of the files (no model needed)
 mvn test -Dtest=RecordReplayBasicsTest -Dspring.ai.test.vcr.store=remote \
